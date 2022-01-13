@@ -2,7 +2,9 @@ deobfuscate ~ Written by Benjamin Jack Cullen aka Holographic_Sol
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 Step 1: Read file(s) into the buffer to try and check its true file type.
+
 Step 2. Scan for the file(s) suffix in the database.
+
 Step 3. Compare the database definition of the files suffix to the results from step 1.
 
 Designed to distinguish between obfuscated files and non-obfuscated files.
