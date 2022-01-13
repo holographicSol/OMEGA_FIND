@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------------------------------------------
 De-Obfuscate (whatis) ~ Written by Benjamin Jack Cullen aka Holographic_Sol
 
+    Some files will need to be extracted.
+
     Designed to distinguish between obfuscated files and non-obfuscated files.
     In this particular definition of what is meant by obfuscated file: A file that has had its file name suffix modified in
     attempt to disguise the file as another file type.
