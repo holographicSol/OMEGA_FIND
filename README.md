@@ -1,6 +1,9 @@
 ---------------------------------------------------------------------------------------------------------------------------------------
 De-Obfuscate (whatis) ~ Written by Benjamin Jack Cullen aka Holographic_Sol
 
+    Category: Security
+    Objective: Attempt to find files that someone has tried to hide by changing the file name suffix.
+
     To use, extract db.zip to same working directory as whatis.py and whatis.exe.
 
     Designed to distinguish between obfuscated files and non-obfuscated files.
