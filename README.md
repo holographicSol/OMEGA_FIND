@@ -39,6 +39,7 @@ Machine Learn:
 
 ---------------------------------------------------------------------------------------------------------------------------------------
 Summary:
+
     This program can be used as is to scan for obfuscated files, define file types and machine learn. Can also be used
     creatively in harmony with technologies that need to distinguish between known files and obfuscated files as part of
     some other function. For example Apple does this to prevent performing certain actions with some file types regardless
