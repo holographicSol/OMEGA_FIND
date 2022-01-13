@@ -25,20 +25,25 @@ Command line arguments:
     -v                Show verbose output
     -h                Displays this help message
 
+---------------------------------------------------------------------------------------------------------------------------------------
 Scan:
+
     Scan a specified location for obfuscated files.
     Step 1: The file(s) read in buffer to try and check its true file type.
     Step 2: Scans for the file(s) alleged suffix in the database.
     Step 3: A digitless database definition is then compared to a digitless result from Step 1.
     Results are logged and also displayed during the scan and upon scan completion.
 
+---------------------------------------------------------------------------------------------------------------------------------------
 Machine Learn:
+
     Learns from a specified location.
     Step 1: The file(s) read in buffer to try and check its file type.
     Step 2: New buffer/suffix associations are (learned) appended to the machine learning database.
     Results are logged and also displayed during machine learning and upon machine learning completion.
     Care should be taken that no obfuscated files are in the specified location.
-    
+
+---------------------------------------------------------------------------------------------------------------------------------------
 Summary:
     This program can be used as is to scan for obfuscated files, define file types and machine learn. Can also be used
     creatively in harmony with technologies that need to distinguish between known files and obfuscated files as part of
