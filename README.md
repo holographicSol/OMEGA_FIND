@@ -3,10 +3,9 @@ De-Obfuscate (whatis) ~ Written by Benjamin Jack Cullen aka Holographic_Sol
 
     Category: Security
     Objective: Attempt to find files that someone has tried to hide by changing the file name suffix.
-
+    
     Prerequisite: Extract db.zip to same working directory as whatis.py and whatis.exe.
-
-    Designed to distinguish between obfuscated files and non-obfuscated files.
+    Summary: Designed to distinguish between obfuscated files and non-obfuscated files.
     In this particular definition of what is meant by obfuscated file: A file that has had its file name suffix modified in
     attempt to disguise the file as another file type.
     Example: File foobar.mp4 has been renamed to anything.exe
