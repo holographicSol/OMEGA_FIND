@@ -19,6 +19,7 @@ De-Obfuscate (whatis) ~ Written by Benjamin Jack Cullen aka Holographic_Sol
 ---------------------------------------------------------------------------------------------------------------------------------------
 
 Command line arguments:
+
     -s                Specifies a directory to scan. [whatis -s directory_name -v]
     -d                Attempts to lookup a definition for suffix (not file/directory name) given. [whatis -d exe -v]
     --machine-learn   Instructs the program to train from a specified location. [whatis --machine-learn directory_name -v]
