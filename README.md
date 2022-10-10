@@ -31,12 +31,12 @@ Scan:
     Results are logged and also displayed during the scan and upon scan completion.
 
 ---------------------------------------------------------------------------------------------------------------------------------------
-Machine Learn:
+Learn:
 
     Learns from a specified location.
     Step 1: The file(s) read in buffer to try and check its file type.
-    Step 2: New buffer/suffix associations are (learned) appended to the machine learning database.
-    Results are logged and also displayed during machine learning and upon machine learning completion.
+    Step 2: New buffer/suffix associations are (learned) appended to the learning database.
+    Results are logged and also displayed during learning and upon learning completion.
     Care should be taken that no obfuscated files are in the specified location.
 
 ---------------------------------------------------------------------------------------------------------------------------------------
