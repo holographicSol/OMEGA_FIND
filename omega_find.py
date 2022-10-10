@@ -832,6 +832,7 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('                      Example: --buffer-size full')
     print('                      If using --buffer-size full, then a scan/learning/find operation could take a much longer time.')
     print('                      --buffer-size can be used in combination with -scan, -learn and -find.')
+    print('    -suffix           Specify suffix. Used in combination with -find.')
     print('    -v                Output verbose.')
     print('    -h                Displays this help message')
     print('')
