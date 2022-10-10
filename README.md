@@ -17,7 +17,7 @@ Command line arguments:
 
     -s                Specifies a directory to scan. [whatis -s directory_name -v]
     -d                Attempts to lookup a definition for suffix (not file/directory name) given. [whatis -d exe -v]
-    --machine-learn   Instructs the program to train from a specified location. [whatis --machine-learn directory_name -v]
+    -learn   Instructs the program to train from a specified location. [whatis -learn directory_name -v]
     -v                Show verbose output
     -h                Displays this help message
 
@@ -42,7 +42,7 @@ Learn:
 ---------------------------------------------------------------------------------------------------------------------------------------
 Summary:
 
-    This program can be used as is to scan for obfuscated files, define file types and machine learn. Can also be used
+    This program can be used as is to scan for obfuscated files, define file types and learn. Can also be used
     creatively in harmony with technologies that need to distinguish between known files and obfuscated files as part of
     some other function. For example Apple does this to prevent performing certain actions with some file types regardless
     of the files alleged suffix.
