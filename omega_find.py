@@ -1018,14 +1018,24 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('                      Example: --buffer-size full')
     print('                      If using --buffer-size full, then a scan/learning/find operation could take a much longer time.')
     print('                      --buffer-size can be used in combination with -scan, -learn and -find.')
+    print('    --first-pass      Used in conjunction with -find. Specify True or False.')
+    print('                      Allows preliminary enumeration to be used for progress. Adds time to total time to complete while')
+    print('                      allowing progress to be displayed.')
     print('    -suffix           Specify suffix. Used in combination with -find.')
     print('    -v                Output verbose.')
     print('    -h                Displays this help message')
     print('')
+    print('    Example: omega_find --first-pass True --buffer-size 2048 -find C:\ -suffix mp4')
+    print('    Example: omega_find --buffer-size 2048 -learn C:\\')
+    print('    Example: omega_find --buffer-size 2048 -scan C:\\')
+    print('    Example: omega_find -define jpg')
     print('-' * limit_char)
     print('')
 
 for _ in sys.argv:
+
+    if '-v' in sys.argv:
+        vf = True
 
     if '-define' in sys.argv:
         fl = True
