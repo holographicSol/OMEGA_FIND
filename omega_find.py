@@ -40,6 +40,7 @@ import mimetypes
 import codecs
 from colorama import Fore, Back, Style
 import psutil
+import pyprogress
 
 encode = u'\u5E73\u621015\u200e\U0001d6d1,'
 vf = False
@@ -49,6 +50,7 @@ fl = False
 learn = False
 limit_char = 120
 total_errors = 0
+multiplier = pyprogress.multiplier_from_inverse_factor(factor=50)
 
 
 class cp:
@@ -84,7 +86,7 @@ def run_function_0(v):
     global vf
     bne = True
     if vf is False:
-        with open('./database_file_extension_light.txt', 'r') as fo:
+        with codecs.open('./db/database_file_extension_light.txt', 'r', encoding='utf8') as fo:
             for line in fo:
                 line = line.strip()
                 if line.startswith(v.lower()+'-file-extension'):
@@ -98,7 +100,7 @@ def run_function_0(v):
                     print(line.replace(v+'-file-description ', ''))
                     bne = False
     elif vf is True:
-        with open('./database_file_extension_verbose.txt', 'r', encoding='utf-8') as fo:
+        with codecs.open('./db/database_file_extension_verbose.txt', 'r', encoding='utf-8') as fo:
             bpe = False
             for line in fo:
 
@@ -131,15 +133,34 @@ def logger(log_file, e, f):
     global total_errors
     total_errors += 1
 
+    if not os.path.exists('./log/'):
+        distutils.dir_util.mkpath('./log/')
+
     if not os.path.exists(log_file):
         open(log_file, 'w').close()
 
     log_tm_stamp = str(datetime.datetime.now())
     e = str('[' + log_tm_stamp + '] [error_count ' + str(total_errors) + '] ' + str(e)).strip()
     path_associated = str('[' + log_tm_stamp + '] [error_count ' + str(total_errors) + '] ' + str(f)).strip()
-    with open(log_file, 'a') as fo:
+    with codecs.open(log_file, 'a', encoding='utf8') as fo:
         fo.write(path_associated + '\n')
         fo.write(e + '\n')
+    fo.close()
+
+
+def logger_omega_find_result(log_file='', fullpath='', buffer=''):
+
+    if not os.path.exists('./data/'):
+        distutils.dir_util.mkpath('./data/')
+
+    if not os.path.exists(log_file):
+        open(log_file, 'w').close()
+
+    log_tm_stamp = str(datetime.datetime.now())
+    to_file = str('[' + log_tm_stamp + '] [PATH] ' + str(fullpath)).strip() + ' [BUFFER] ' + str(buffer)
+
+    with codecs.open(log_file, 'a', encoding='utf8') as fo:
+        fo.write(to_file + '\n')
     fo.close()
 
 
@@ -154,7 +175,7 @@ def run_function_1(vv, buffer_size=2048):
 
     cp.cpi('-- attempting to create new timestamped directory for results.')
 
-    mime_type_database = './database_file_extension_define.txt'
+    mime_type_database = './db/database_file_mime_types.txt'
 
     """ Create A Time Stamped Directory """
     time_now = str(datetime.datetime.now())
@@ -196,7 +217,7 @@ def run_function_1(vv, buffer_size=2048):
         """ Only Read Database If Exist And Continue (Pure logger mode) """
         if os.path.exists(mime_type_database):
             cp.cpi(str('-- successfully found mime types database: ') + str(dir_now))
-            with open(mime_type_database, 'r') as fo:
+            with codecs.open(mime_type_database, 'r', encoding='utf8') as fo:
                 for line in fo:
                     line = line.strip()
                     line = line.lower()
@@ -223,7 +244,7 @@ def run_function_1(vv, buffer_size=2048):
             fo.close()
 
         """ Read Database (Learned Buffer Read Results Mapped To File Suffixes) """
-        learn_database = './database_learning.txt'
+        learn_database = './db/database_learning.txt'
         cp.cpi(str('-- attempting to read database:   ') + str(learn_database))
         trf = learn_database
         learning_br = []
@@ -232,7 +253,7 @@ def run_function_1(vv, buffer_size=2048):
 
         if os.path.exists(trf):
             cp.cpi(str('-- reading learning database:              ') + str(learn_database))
-            with open(trf, 'r') as fo:
+            with codecs.open(trf, 'r', encoding='utf8') as fo:
                 for line in fo:
                     line_count += 1
                     line = line.strip()
@@ -551,7 +572,7 @@ def run_function_1(vv, buffer_size=2048):
                                     learn_count += 1
                                     bool_learn = True
                                     print(Style.BRIGHT + Fore.MAGENTA + '[LEARNED] ' + Style.BRIGHT + Fore.GREEN + str(bool_learn) + Style.RESET_ALL)
-                                    with open(learn_database, 'a') as fo:
+                                    with codecs.open(learn_database, 'a', encoding='utf8') as fo:
                                         to_file = key_buff_read
                                         fo.write(to_file + '\n')
                                 elif key_buff_read in new_learned:
@@ -645,7 +666,7 @@ def run_function_1(vv, buffer_size=2048):
             if not os.path.exists(log_report):
                 open(log_report, 'w').close()
 
-            with open(log_report, 'a') as fo_report:
+            with codecs.open(log_report, 'a', encoding='utf8') as fo_report:
                 if learn is True:
                     fo_report.write('[LEARNING RESULTS]'+'\n')
                 elif learn is False:
@@ -733,24 +754,116 @@ def run_function_1(vv, buffer_size=2048):
             print('')
 
 
-def omega_find(find_path='', suffix='', buffer_size=2048):
+def omega_find(find_path='', suffix='', buffer_size=2048, first_pass=True, verbosity='low'):
     """ uses database to perform a special search """
 
+    char_limit = 0
+    buffer_read_exception_permssion_count_0 = 0
+    buffer_read_exception_permssion_count_1 = 0
+    buffer_read_exception_count_0 = 0
+    buffer_read_exception_count_1 = 0
+
+    dt = str(datetime.datetime.now())
+    log_error_file = os.getcwd() + '/log/log_error_omega_find_[' + str(suffix) + ']_' + dt + '.txt'
+    log_result_file = os.getcwd() + '/data/log_result_omega_find_[' + str(suffix) + ']_' + dt.replace(':', '') + '.txt'
+
+    # header
+    print('\n')
+    print('-' * 120)
+    print('')
+    print(str(' '*54) + Style.BRIGHT + Fore.GREEN + '[OMEGA FIND]' + Style.RESET_ALL)
+    print('')
+    print('-' * 120)
+
+    # scan criteria
+    print('')
+    print(str(' '*52) + Style.BRIGHT + Fore.GREEN + '[SCAN CRITERIA]' + Style.RESET_ALL)
+    print(Style.BRIGHT + Fore.GREEN + '[LOCATION] ' + Style.RESET_ALL + str(find_path))
+    print(Style.BRIGHT + Fore.GREEN + '[FILE TYPE] ' + Style.RESET_ALL + str(suffix))
+    print(Style.BRIGHT + Fore.GREEN + '[BUFFER SIZE] ' + Style.RESET_ALL + str(buffer_size))
+    print('')
+    print('-' * 120)
+
+    # read database
+    print('')
+    print(str(' ' * 51) + Style.BRIGHT + Fore.GREEN + '[READING DATABASE]' + Style.RESET_ALL)
     known_buffer = []
-    if os.path.exists('./database_learning.txt'):
-        with codecs.open('./database_learning.txt', 'r', encoding='utf8') as fo:
+    if os.path.exists('./db/database_learning.txt'):
+        print(Style.BRIGHT + Fore.GREEN + '[DATABASE] ' + Style.RESET_ALL + 'Found (' + str(find_path) + ')')
+        with codecs.open('./db/database_learning.txt', 'r', encoding='utf8') as fo:
             for line in fo:
                 line = line.strip()
                 if line.startswith(suffix):
                     known_buffer.append(line)
-    print(known_buffer)
 
+                    # update displayed known associations in loop for large databases to show progress.
+                    pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILETYPE BUFFER ASSOCIATIONS] ' + Style.RESET_ALL + str(len(known_buffer)))
+                    pyprogress.pr_technical_data(pr_str)
+    else:
+        print(Style.BRIGHT + Fore.RED + '[DATABASE] ' + Style.RESET_ALL + 'Could not find database.')
+    print('')
+    print('')
+    print('-' * 120)
+
+    # preliminarily scan target location
+    if first_pass is True:
+        print('')
+        print(str(' ' * 47) + Style.BRIGHT + Fore.GREEN + '[SCANNING TARGET LOCATION]' + Style.RESET_ALL)
+        f_count = 0
+        for dirName, subdirList, fileList in os.walk(find_path):
+            for fname in fileList:
+                f_count += 1
+
+                # update displayed known associations in loop for large databases to show progress.
+                pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
+                pyprogress.pr_technical_data(pr_str)
+        print('')
+    else:
+        print(str(' ' * 43) + Style.BRIGHT + Fore.GREEN + '[SKIPPING SCANNING TARGET LOCATION]' + Style.RESET_ALL)
+        print('')
+    print('')
+    print('-' * 120)
+
+    # omega find
+    print('')
+    print(str(' ' * 40) + Style.BRIGHT + Fore.GREEN + '[PERFORMING PRIMARY OPERATION] OMEGA FIND' + Style.RESET_ALL)
+    print('')
+    print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND]  ' + Style.RESET_ALL + 'Attempting to read each file into memory and compare buffer to known buffers for suffix specified.')
+    print(Style.BRIGHT + Fore.GREEN + '[INFORMATION] ' + Style.RESET_ALL + 'Like files may be included in results. This is normal and expected behaviour.')
+    print('')
+    f_i = 0
+    f_match = []
+    f_error = []
+    f_all = []
     for dirName, subdirList, fileList in os.walk(find_path):
         for fname in fileList:
             fullpath = os.path.join(dirName, fname)
-            print('[READING] ' + fullpath)
+            f_i += 1
 
-            # todo --> count encountered
+            if verbosity == 'low' and first_pass is True:
+                try:
+                    pyprogress.progress_bar(part=int(f_i), whole=int(f_count),
+                                            pre_append=str(Style.BRIGHT + Fore.GREEN + '[SCANNING] '+Style.RESET_ALL),
+                                            append=str(' ' + str(f_i) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [' + str(len(f_match)) + ']' + Fore.RED + ' [' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL),
+                                            encapsulate_l='|',
+                                            encapsulate_r='|',
+                                            encapsulate_l_color='RED',
+                                            encapsulate_r_color='RED',
+                                            progress_char=' ',
+                                            bg_color='RED',
+                                            factor=50,
+                                            multiplier=multiplier)
+                except Exception as e:
+                    print('')
+                    print(e)
+                    pass
+            else:
+                print('-' * 120)
+                print(Style.BRIGHT + Fore.GREEN + '[PROGRESS] ' + Style.RESET_ALL + str(f_i) + ' / ' + str(f_count))
+                print(Style.BRIGHT + Fore.GREEN + '[BUFFER MATCHES] ' + Style.RESET_ALL + str(len(f_match)))
+                print(Style.BRIGHT + Fore.GREEN + '[PERMISSION ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_permssion_count_1))
+                print(Style.BRIGHT + Fore.GREEN + '[TOTAL ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_count_1))
+                print(Style.BRIGHT + Fore.GREEN + '[READING] ' + Style.RESET_ALL + str(fullpath))
 
             """ Initiate And Clear Each Iteration """
             b = ''
@@ -768,9 +881,21 @@ def omega_find(find_path='', suffix='', buffer_size=2048):
                 b_1 = str(b_1)
                 b_1 = b_1.lower()
                 b_1 = b_1.strip()
+
             except Exception as e:
-                print(fullpath, e)
-                # todo --> log + count exception
+
+                if 'permission denied' in str(e).lower():
+                    buffer_read_exception_permssion_count_0 += 1
+                buffer_read_exception_count_0 += 1
+
+                f_error.append('[ERROR 0] [' + fullpath + '] ' + str(e))
+                f_all.append('[ERROR 0] [' + fullpath + '] ' + str(e))
+
+                if verbosity == 'high':
+                    print(fullpath, e)
+
+                # logger(log_file=log_error_file, e=str(e), f=fullpath) # uncomment for verbose logging
+
                 try:
 
                     """ Allocate buffer size and read the file. """
@@ -784,8 +909,20 @@ def omega_find(find_path='', suffix='', buffer_size=2048):
                     b_2 = b_2.strip()
 
                 except Exception as e:
-                    print(fullpath, e)
-                    # todo --> log + count exception
+
+                    if 'permission denied' in str(e).lower():
+                        buffer_read_exception_permssion_count_1 += 1
+                    buffer_read_exception_count_1 += 1
+
+                    f_error.append('[ERROR 1] [' + fullpath + '] ' + str(e))
+                    f_all.append('[ERROR 1] [' + fullpath + '] ' + str(e))
+
+                    if verbosity == 'high':
+                        print(fullpath, e)
+
+                    logger(log_file=log_error_file, e=str(e), f=fullpath)
+
+                    break
 
             """ Use Most Defined Buffer String """
             b_1_len = len(b_1)
@@ -805,9 +942,58 @@ def omega_find(find_path='', suffix='', buffer_size=2048):
             for _ in known_buffer:
                 y_re = re.sub(digi_str, '', _)
                 if y_re == x_re:
-                    print(Style.BRIGHT + Fore.MAGENTA + '[REGEX BUFFER MATCH] [FILE] ' + Style.BRIGHT + Fore.GREEN + str(fullpath) + Fore.MAGENTA + ' [BUFFER] ' + Style.BRIGHT + Fore.GREEN + str(x_re) + Style.RESET_ALL)
-                    # todo --> log
+                    if first_pass is False:
+                        print(Style.BRIGHT + Fore.GREEN + '[REGEX BUFFER MATCH] [FILE] ' + Style.RESET_ALL + str(fullpath))
+                        print(Style.BRIGHT + Fore.GREEN + '[BUFFER] ' + Style.RESET_ALL + str(x_re))
+                    f_match.append(fullpath)
+                    f_all.append('[BUFFER MATCH] [' + fullpath + '] ' + str(x_re))
+                    logger_omega_find_result(log_file=log_result_file, fullpath=fullpath, buffer=x_re)
+
                 i += 1
+    print('')
+    print('')
+    print('-' * 120)
+    print('')
+    print(str(' ' * 56) + Style.BRIGHT + Fore.GREEN + '[MENU]' + Style.RESET_ALL)
+    print('')
+    print(Style.BRIGHT + Fore.GREEN + ' [OPEN RESULTS FILE] ' + Style.RESET_ALL + '1' + '                                                                           ' + Style.BRIGHT + Fore.GREEN + ' [DISPLAY RESULTS]   ' + Style.RESET_ALL + '3')
+    print(Style.BRIGHT + Fore.GREEN + ' [OPEN ERROR FILE]   ' + Style.RESET_ALL + '2' + '                                                                           ' + Style.BRIGHT + Fore.GREEN + ' [DISPLAY ERRORS]    ' + Style.RESET_ALL + '4')
+    print(Style.BRIGHT + Fore.GREEN + '                                                                                                  [DISPLAY ALL]       ' + Style.RESET_ALL + '5')
+    print('')
+    print('-' * 120)
+    menu_input = input('[select] ')
+    print('-' * 120)
+    print('')
+    if menu_input == '1':
+        if os.path.exists(log_result_file):
+            print(str(' ' * 48) + Style.BRIGHT + Fore.GREEN + '[OPENING RESULTS FILE]' + Style.RESET_ALL)
+            os.startfile('"' + log_result_file + '"')
+        else:
+            print(str(' ' * 44) + Style.BRIGHT + Fore.GREEN + '[RESULTS FILE COULD NOT BE FOUND]' + Style.RESET_ALL)
+    elif menu_input == '2':
+        if os.path.exists(log_error_file):
+            print(str(' ' * 50) + Style.BRIGHT + Fore.GREEN + '[OPENING ERROR FILE]' + Style.RESET_ALL)
+            os.startfile('"' + log_error_file + '"')
+        else:
+            print(str(' ' * 47) + Style.BRIGHT + Fore.GREEN + '[ERROR FILE COULD NOT BE FOUND]' + Style.RESET_ALL)
+    elif menu_input == '3':
+        print(str(' ' * 46) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING BUFFER MATCHES]' + Style.RESET_ALL)
+        print('-' * 120)
+        for _ in f_match:
+            print(Style.BRIGHT + Fore.GREEN + '[BUFFER MATCH] ' + Style.RESET_ALL + str(_))
+    elif menu_input == '4':
+        print(str(' ' * 50) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING ERRORS]' + Style.RESET_ALL)
+        print('-' * 120)
+        for _ in f_error:
+            print(Style.BRIGHT + Fore.GREEN + '[ERROR] ' + Style.RESET_ALL + str(_))
+    elif menu_input == '5':
+        print(str(' ' * 52) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING ALL]' + Style.RESET_ALL)
+        print('-' * 120)
+        for _ in f_all:
+            print(Style.BRIGHT + Fore.GREEN + '[OUTPUT] ' + Style.RESET_ALL + str(_))
+    print('')
+    print('-' * 120)
+    print('')
 
 
 if len(sys.argv) == 2 and sys.argv[1] == '-h':
@@ -824,8 +1010,8 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('    -scan             Specifies a directory to scan. [ -scan directory_name ]')
     print('    -learn            Instructs the program to train from a specified location. [ -learn directory_name ]')
     print('    -define           Attempts to lookup a definition for suffix (not file/directory name) given. [ -define exe ]')
-    print('    -find             Specify file type. Finds files predicated upon known buffer read associations created by learning.')
-    print('                      Example: -find sh')
+    print('    -find             Specify path. Finds files predicated upon known buffer read associations created by learning.')
+    print('                      Example: -find C:/')
     print('                      A special and powerful search feature.')
     print('    --buffer-size     Specify in bytes how much of each file will be read into the buffer.')
     print('                      Example: --buffer-size 1024')
@@ -885,13 +1071,28 @@ for _ in sys.argv:
             buffer_size = 2048
 
     elif '-find' in sys.argv and '-suffix' in sys.argv:
-        # todo --> filetype grouping; audio, video, text, etc. example --find-group video
+        # todo --> filetype grouping; audio, video, text, executable etc. example --find-group video
+
+        allow_run = True
 
         idx = sys.argv.index('-find')
         find_path = sys.argv[idx+1]
 
         idx = sys.argv.index('-suffix')
         suffix = sys.argv[idx+1]
+
+        first_pass = True
+        verbosity = 'low'
+
+        if '--first-pass' in sys.argv:
+            idx = sys.argv.index('--first-pass')
+            first_pass_ = sys.argv[idx + 1]
+            if first_pass_ == 'True':
+                first_pass = True
+            elif first_pass_ == 'False':
+                first_pass = False
+            else:
+                allow_run = False
 
         if '--buffer-size' in sys.argv:
             idx = sys.argv.index('--buffer-size')
@@ -902,7 +1103,12 @@ for _ in sys.argv:
         else:
             buffer_size = 2048
 
-        omega_find(find_path=find_path, suffix=suffix, buffer_size=buffer_size)
+        if '-v' in sys.argv:
+            verbosity = 'high'
+
+        if allow_run is True:
+            omega_find(find_path=find_path, suffix=suffix, buffer_size=buffer_size, first_pass=first_pass, verbosity=verbosity)
+        break
 
 if rf == 0:
     run_function_0(v)
@@ -911,3 +1117,5 @@ elif rf == 1:
         run_function_1(vv, buffer_size=buffer_size)
     else:
         print('-- invalid path')
+
+Style.RESET_ALL
