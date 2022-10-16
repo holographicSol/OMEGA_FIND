@@ -789,7 +789,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
     print(str(' ' * 51) + Style.BRIGHT + Fore.GREEN + '[READING DATABASE]' + Style.RESET_ALL)
     known_buffer = []
     if os.path.exists('./db/database_learning.txt'):
-        print(Style.BRIGHT + Fore.GREEN + '[DATABASE] ' + Style.RESET_ALL + 'Found (' + str(target_path) + ')')
+        print(Style.BRIGHT + Fore.GREEN + '[DATABASE] ' + Style.RESET_ALL + 'Found')
         with codecs.open('./db/database_learning.txt', 'r', encoding='utf8') as fo:
             for line in fo:
                 line = line.strip()
