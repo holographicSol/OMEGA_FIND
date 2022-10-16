@@ -2,6 +2,8 @@ An extremely powerful search and define forensics tool.
 
 """ Written by Benjamin Jack Cullen aka Holographic_Sol
 
+To anyone doing anything they should not be doing, this will get you, and to any journalists crossing the north korean border... i am sorry.
+
 OMEGA FIND
 
 Intention 1: To find/expose files that may be pretending to be a file type other than the files real file type.
