@@ -840,7 +840,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
             fullpath = os.path.join(dirName, fname)
             f_i += 1
 
-            if verbosity is True and first_pass is True:
+            if verbosity is False and first_pass is True:
                 try:
                     pyprogress.progress_bar(part=int(f_i), whole=int(f_count),
                                             pre_append=str(Style.BRIGHT + Fore.GREEN + '[SCANNING] '+Style.RESET_ALL),
