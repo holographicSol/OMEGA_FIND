@@ -43,13 +43,14 @@ import psutil
 import pyprogress
 
 encode = u'\u5E73\u621015\u200e\U0001d6d1,'
-vf = False
+verbosity = False
+first_pass = True
 ei = 0
 rf = ()
-fl = False
 learn = False
 limit_char = 120
 total_errors = 0
+buffer_size = 2048
 multiplier = pyprogress.multiplier_from_inverse_factor(factor=50)
 
 
@@ -83,9 +84,9 @@ def cc():
 
 
 def run_function_0(v):
-    global vf
+    global verbosity
     bne = True
-    if vf is False:
+    if verbosity is False:
         with codecs.open('./db/database_file_extension_light.txt', 'r', encoding='utf8') as fo:
             for line in fo:
                 line = line.strip()
@@ -99,7 +100,7 @@ def run_function_0(v):
                 if line.startswith(v.lower()+'-file-description'):
                     print(line.replace(v+'-file-description ', ''))
                     bne = False
-    elif vf is True:
+    elif verbosity is True:
         with codecs.open('./db/database_file_extension_verbose.txt', 'r', encoding='utf-8') as fo:
             bpe = False
             for line in fo:
@@ -164,8 +165,7 @@ def logger_omega_find_result(log_file='', fullpath='', buffer=''):
     fo.close()
 
 
-def run_function_1(vv, buffer_size=2048):
-    global vf
+def run_function_1(target_path, buffer_size=2048):
     global ei
     global learn
 
@@ -326,7 +326,7 @@ def run_function_1(vv, buffer_size=2048):
         print('')
 
         # Details
-        print(Style.BRIGHT+Fore.MAGENTA + '[SPECIFIED LOCATION]                        ' + Style.BRIGHT+Fore.GREEN + str(vv) + Style.RESET_ALL)
+        print(Style.BRIGHT+Fore.MAGENTA + '[SPECIFIED LOCATION]                        ' + Style.BRIGHT+Fore.GREEN + str(target_path) + Style.RESET_ALL)
         if learn is True:
             print(Style.BRIGHT+Fore.MAGENTA+'[LEARNING]                          ' + Style.BRIGHT+Fore.RED+str(learn)+'   [WARNING!]' + Style.RESET_ALL)
         else:
@@ -352,7 +352,7 @@ def run_function_1(vv, buffer_size=2048):
 
         elif learn is False:
             print('')
-            cp.cpp('[SCAN]   This program will attempt to de-obfuscate files in: ' + str(vv))
+            cp.cpp('[SCAN]   This program will attempt to de-obfuscate files in: ' + str(target_path))
             pr_row(limit_char)
             print('')
             usr_choice = input('Press Y to attempt de-obfuscation or press any other key to abort [Enter] : ')
@@ -361,12 +361,12 @@ def run_function_1(vv, buffer_size=2048):
         """ Continue If Compiled Database Lists Are Aligned """
         if usr_choice.lower() == 'y':
             if learn is True:
-                cp.cpi('-- attempting to learn about files in location:', vv)
+                cp.cpi('-- attempting to learn about files in location:', target_path)
             elif learn is False:
-                cp.cpi('-- scanning location:', vv)
+                cp.cpi('-- scanning location:', target_path)
 
             """ Walk User Specified Directory """
-            for dirName, subdirList, fileList in os.walk(vv):
+            for dirName, subdirList, fileList in os.walk(target_path):
                 for fname in fileList:
 
                     # Count Files
@@ -675,7 +675,7 @@ def run_function_1(vv, buffer_size=2048):
                 fo_report.write('[LEARN] ' + str(learn) + '\n')
                 fo_report.write('[INITIATION TIME] ' + str(time_now) + '\n')
                 fo_report.write('[COMPLETION TIME] ' + str(datetime.datetime.now()) + '\n')
-                fo_report.write('[LOCATION] ' + str(vv) + '\n')
+                fo_report.write('[LOCATION] ' + str(target_path) + '\n')
                 fo_report.write('[TOTAL FILES ENCOUNTERED] ' + str(total_files_encountered) + '\n')
                 if learn is True:
                     fo_report.write('[LEARNED] ' + str(learn_count) + '\n')
@@ -708,7 +708,7 @@ def run_function_1(vv, buffer_size=2048):
             print(Style.BRIGHT + Fore.MAGENTA + '[INITIATION TIME] ' + Style.BRIGHT + Fore.GREEN + str(time_now) + Style.RESET_ALL)
             print(Style.BRIGHT + Fore.MAGENTA + '[COMPLETION TIME] ' + Style.BRIGHT + Fore.GREEN + str(datetime.datetime.now()) + Style.RESET_ALL)
             print('')
-            print(Style.BRIGHT + Fore.MAGENTA + '[LOCATION] ' + Style.BRIGHT + Fore.GREEN + str(vv) + Style.RESET_ALL)
+            print(Style.BRIGHT + Fore.MAGENTA + '[LOCATION] ' + Style.BRIGHT + Fore.GREEN + str(target_path) + Style.RESET_ALL)
             print(Style.BRIGHT + Fore.MAGENTA + '[TOTAL FILES ENCOUNTERED] ' + Style.BRIGHT + Fore.GREEN + str(total_files_encountered) + Style.RESET_ALL)
             print('')
             if learn is True:
@@ -754,7 +754,7 @@ def run_function_1(vv, buffer_size=2048):
             print('')
 
 
-def omega_find(find_path='', suffix='', buffer_size=2048, first_pass=True, verbosity='low'):
+def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, verbosity=False):
     """ uses database to perform a special search """
 
     char_limit = 0
@@ -778,7 +778,7 @@ def omega_find(find_path='', suffix='', buffer_size=2048, first_pass=True, verbo
     # scan criteria
     print('')
     print(str(' '*52) + Style.BRIGHT + Fore.GREEN + '[SCAN CRITERIA]' + Style.RESET_ALL)
-    print(Style.BRIGHT + Fore.GREEN + '[LOCATION] ' + Style.RESET_ALL + str(find_path))
+    print(Style.BRIGHT + Fore.GREEN + '[LOCATION] ' + Style.RESET_ALL + str(target_path))
     print(Style.BRIGHT + Fore.GREEN + '[FILE TYPE] ' + Style.RESET_ALL + str(suffix))
     print(Style.BRIGHT + Fore.GREEN + '[BUFFER SIZE] ' + Style.RESET_ALL + str(buffer_size))
     print('')
@@ -789,7 +789,7 @@ def omega_find(find_path='', suffix='', buffer_size=2048, first_pass=True, verbo
     print(str(' ' * 51) + Style.BRIGHT + Fore.GREEN + '[READING DATABASE]' + Style.RESET_ALL)
     known_buffer = []
     if os.path.exists('./db/database_learning.txt'):
-        print(Style.BRIGHT + Fore.GREEN + '[DATABASE] ' + Style.RESET_ALL + 'Found (' + str(find_path) + ')')
+        print(Style.BRIGHT + Fore.GREEN + '[DATABASE] ' + Style.RESET_ALL + 'Found (' + str(target_path) + ')')
         with codecs.open('./db/database_learning.txt', 'r', encoding='utf8') as fo:
             for line in fo:
                 line = line.strip()
@@ -810,7 +810,7 @@ def omega_find(find_path='', suffix='', buffer_size=2048, first_pass=True, verbo
         print('')
         print(str(' ' * 47) + Style.BRIGHT + Fore.GREEN + '[SCANNING TARGET LOCATION]' + Style.RESET_ALL)
         f_count = 0
-        for dirName, subdirList, fileList in os.walk(find_path):
+        for dirName, subdirList, fileList in os.walk(target_path):
             for fname in fileList:
                 f_count += 1
 
@@ -835,12 +835,12 @@ def omega_find(find_path='', suffix='', buffer_size=2048, first_pass=True, verbo
     f_match = []
     f_error = []
     f_all = []
-    for dirName, subdirList, fileList in os.walk(find_path):
+    for dirName, subdirList, fileList in os.walk(target_path):
         for fname in fileList:
             fullpath = os.path.join(dirName, fname)
             f_i += 1
 
-            if verbosity == 'low' and first_pass is True:
+            if verbosity is True and first_pass is True:
                 try:
                     pyprogress.progress_bar(part=int(f_i), whole=int(f_count),
                                             pre_append=str(Style.BRIGHT + Fore.GREEN + '[SCANNING] '+Style.RESET_ALL),
@@ -891,7 +891,7 @@ def omega_find(find_path='', suffix='', buffer_size=2048, first_pass=True, verbo
                 f_error.append('[ERROR 0] [' + fullpath + '] ' + str(e))
                 f_all.append('[ERROR 0] [' + fullpath + '] ' + str(e))
 
-                if verbosity == 'high':
+                if verbosity is True:
                     print(fullpath, e)
 
                 # logger(log_file=log_error_file, e=str(e), f=fullpath) # uncomment for verbose logging
@@ -917,7 +917,7 @@ def omega_find(find_path='', suffix='', buffer_size=2048, first_pass=True, verbo
                     f_error.append('[ERROR 1] [' + fullpath + '] ' + str(e))
                     f_all.append('[ERROR 1] [' + fullpath + '] ' + str(e))
 
-                    if verbosity == 'high':
+                    if verbosity is True:
                         print(fullpath, e)
 
                     logger(log_file=log_error_file, e=str(e), f=fullpath)
@@ -1018,114 +1018,72 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('                      Example: --buffer-size full')
     print('                      If using --buffer-size full, then a scan/learning/find operation could take a much longer time.')
     print('                      --buffer-size can be used in combination with -scan, -learn and -find.')
-    print('    --first-pass      Used in conjunction with -find. Specify True or False.')
+    print('    --first-pass      Used in conjunction with -find.')
     print('                      Allows preliminary enumeration to be used for progress. Adds time to total time to complete while')
     print('                      allowing progress to be displayed.')
     print('    -suffix           Specify suffix. Used in combination with -find.')
     print('    -v                Output verbose.')
     print('    -h                Displays this help message')
     print('')
-    print('    Example: omega_find --first-pass True --buffer-size 2048 -find C:\ -suffix mp4')
+    print('    Example: omega_find --first-pass --buffer-size 2048 -find C:\ -suffix mp4')
     print('    Example: omega_find --buffer-size 2048 -learn C:\\')
-    print('    Example: omega_find --buffer-size 2048 -scan C:\\')
+    print('    Example: omega_find --buffer-size full -scan C:\\')
     print('    Example: omega_find -define jpg')
     print('-' * limit_char)
     print('')
 
-for _ in sys.argv:
 
-    if '-v' in sys.argv:
-        vf = True
+if '-v' in sys.argv:
+    verbosity = True
 
-    if '-define' in sys.argv:
-        fl = True
-        idx = sys.argv.index('-define')
-        if len(sys.argv) > idx+1:
-            v = sys.argv[idx+1]
-            if v != '-v':
-                rf = 0
+if '--buffer-size' in sys.argv:
+    idx = sys.argv.index('--buffer-size')
+    if sys.argv[idx + 1].isdigit():
+        buffer_size = int(sys.argv[idx + 1])
+    elif sys.argv[idx + 1] == 'full':
+        buffer_size = sys.argv[idx + 1]
 
-    elif '-scan' in sys.argv:
-        fl = True
-        idx = sys.argv.index('-scan')
-        if len(sys.argv) > idx + 1:
-            vv = sys.argv[idx+1]
-            if vv != '-v':
-                rf = 1
+if '--first-pass' in sys.argv:
+    first_pass = True
 
-        if '--buffer-size' in sys.argv:
-            idx = sys.argv.index('--buffer-size')
-            if sys.argv[idx + 1].isdigit():
-                buffer_size = int(sys.argv[idx + 1])
-            elif sys.argv[idx + 1] == 'full':
-                buffer_size = sys.argv[idx + 1]
-        else:
-            buffer_size = 2048
+if '-define' in sys.argv:
+    idx = sys.argv.index('-define')
+    suffix = sys.argv[idx+1]
 
-    elif '-learn' in sys.argv:
-        fl = True
-        idx = sys.argv.index('-learn')
-        if len(sys.argv) > idx + 1:
-            vv = sys.argv[idx+1]
-            if vv != '-v':
-                learn = True
-                rf = 1
+    run_function_0(suffix)
 
-        if '--buffer-size' in sys.argv:
-            idx = sys.argv.index('--buffer-size')
-            if sys.argv[idx + 1].isdigit():
-                buffer_size = int(sys.argv[idx + 1])
-            elif sys.argv[idx + 1] == 'full':
-                buffer_size = sys.argv[idx + 1]
-        else:
-            buffer_size = 2048
+elif '-scan' in sys.argv:
+    idx = sys.argv.index('-scan')
+    target_path = sys.argv[idx+1]
 
-    elif '-find' in sys.argv and '-suffix' in sys.argv:
-        # todo --> filetype grouping; audio, video, text, executable etc. example --find-group video
+    if os.path.exists(target_path) and os.path.isdir(target_path) is True:
+        run_function_1(target_path, buffer_size=buffer_size)
+    else:
+        print('-- invalid path')
 
-        allow_run = True
+elif '-learn' in sys.argv:
+    learn = True
+
+    idx = sys.argv.index('-learn')
+    target_path = sys.argv[idx+1]
+
+    if os.path.exists(target_path) and os.path.isdir(target_path) is True:
+        run_function_1(target_path, buffer_size=buffer_size)
+    else:
+        print('-- invalid path')
+
+elif '-find' in sys.argv and '-suffix' in sys.argv:
 
         idx = sys.argv.index('-find')
-        find_path = sys.argv[idx+1]
+        target_path = sys.argv[idx+1]
 
         idx = sys.argv.index('-suffix')
         suffix = sys.argv[idx+1]
 
-        first_pass = True
-        verbosity = 'low'
-
-        if '--first-pass' in sys.argv:
-            idx = sys.argv.index('--first-pass')
-            first_pass_ = sys.argv[idx + 1]
-            if first_pass_ == 'True':
-                first_pass = True
-            elif first_pass_ == 'False':
-                first_pass = False
-            else:
-                allow_run = False
-
-        if '--buffer-size' in sys.argv:
-            idx = sys.argv.index('--buffer-size')
-            if sys.argv[idx + 1].isdigit():
-                buffer_size = int(sys.argv[idx + 1])
-            elif sys.argv[idx + 1] == 'full':
-                buffer_size = sys.argv[idx + 1]
+        if os.path.exists(target_path):
+            omega_find(target_path=target_path, suffix=suffix, buffer_size=buffer_size, first_pass=first_pass, verbosity=verbosity)
         else:
-            buffer_size = 2048
+            print('-- invalid path')
 
-        if '-v' in sys.argv:
-            verbosity = 'high'
-
-        if allow_run is True:
-            omega_find(find_path=find_path, suffix=suffix, buffer_size=buffer_size, first_pass=first_pass, verbosity=verbosity)
-        break
-
-if rf == 0:
-    run_function_0(v)
-elif rf == 1:
-    if os.path.exists(vv) and os.path.isdir(vv) is True:
-        run_function_1(vv, buffer_size=buffer_size)
-    else:
-        print('-- invalid path')
 
 Style.RESET_ALL
