@@ -31,15 +31,11 @@ import os
 import sys
 import pathlib
 import datetime
-import time
 import re
 import magic
-import unicodedata
 import distutils.dir_util
-import mimetypes
 import codecs
-from colorama import Fore, Back, Style
-import psutil
+from colorama import Fore, Style
 import pyprogress
 
 encode = u'\u5E73\u621015\u200e\U0001d6d1,'
@@ -52,28 +48,6 @@ limit_char = 120
 total_errors = 0
 buffer_size = 2048
 multiplier = pyprogress.multiplier_from_inverse_factor(factor=50)
-
-
-class cp:
-    @staticmethod
-    def cpf(message, end='\n'):
-        sys.stderr.write('\x1b[1;31m' + message.strip() + '\x1b[0m' + end)
-
-    @staticmethod
-    def cpp(message, end='\n'):
-        sys.stdout.write('\x1b[1;32m' + message.strip() + '\x1b[0m' + end)
-
-    @staticmethod
-    def cpw(message, end='\n'):
-        sys.stderr.write('\x1b[1;33m' + message.strip() + '\x1b[0m' + end)
-
-    @staticmethod
-    def cpi(message, end='\n'):
-        sys.stdout.write('\x1b[1;34m' + message.strip() + '\x1b[0m' + end)
-
-    @staticmethod
-    def cpb(message, end='\n'):
-        sys.stdout.write('\x1b[1;37m' + message.strip() + '\x1b[0m' + end)
 
 
 def cc():
@@ -109,7 +83,7 @@ def run_function_0(v):
                 line = line.strip()
                 if line.startswith(v.lower()+'-file-extension'):
                     print('')
-                    cp.cpp(str('File Extension: ') + str(line.replace('-file-extension', '')))
+                    print(str('File Extension: ') + str(line.replace('-file-extension', '')))
                     print('')
                     bne = False
                     bpe = True
@@ -127,7 +101,7 @@ def run_function_0(v):
 
 
 def pr_row(limit_char):
-    cp.cpf(str('-' * limit_char))
+    print(str('-' * limit_char))
 
 
 def logger(log_file, e, f):
@@ -165,15 +139,13 @@ def logger_omega_find_result(log_file='', fullpath='', buffer=''):
     fo.close()
 
 
-def run_function_1(target_path, buffer_size=2048):
+def run_function_1(target_path, buffer_size=2048, first_pass=False):
     global ei
     global learn
+    global verbosity
 
-    cp.cpi('-- attempting to clear screen.')
-
-    cc()
-
-    cp.cpi('-- attempting to create new timestamped directory for results.')
+    if verbosity is True:
+        print('-- attempting to create new timestamped directory for results.')
 
     mime_type_database = './db/database_file_mime_types.txt'
 
@@ -188,10 +160,12 @@ def run_function_1(target_path, buffer_size=2048):
     """ Check Directory Exists """
     bool_created_tm_stamp_dir = False
     if os.path.exists(dir_now):
-        cp.cpi(str('-- successfully created new directory: ') + str(dir_now))
+        if verbosity is True:
+            print(str('-- successfully created new directory: ') + str(dir_now))
         bool_created_tm_stamp_dir = True
     else:
-        cp.cpf(str('-- failed to create new timestamped directory: ') + str(dir_now))
+        if verbosity is True:
+            print(str('-- failed to create new timestamped directory: ') + str(dir_now))
 
     if bool_created_tm_stamp_dir is True:
 
@@ -201,13 +175,40 @@ def run_function_1(target_path, buffer_size=2048):
         log_file_permission_denied = dir_now + 'log_file_permission_denied.txt'
         log_file_empty_buffer_read = dir_now + 'log_file_buffer_string_empty.txt'
 
-        cp.cpi(str('-- creating new file name value: ') + str(log_file_failed_inspection))
-        cp.cpi(str('-- creating new file name value: ') + str(ef))
+        if verbosity is True:
+            print(str('-- creating new file name value: ') + str(log_file_failed_inspection))
+            print(str('-- creating new file name value: ') + str(ef))
 
         """ Read Mime Type Database """
-        cp.cpi('-- attempting to read mime type database: ' + mime_type_database)
+        if verbosity is True:
+            print('-- attempting to read mime type database: ' + mime_type_database)
 
-        """ Check Directory Exists """
+        """ Display Scan Criteria And Present Confirmation Opportunity """
+        print('')
+        print('-' * limit_char)
+
+        # Header
+        if learn is True:
+            str_ = '[OMEGA FIND] LEARNING MODE'
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+            print('-' * limit_char)
+            str_ = '[LEARNING CRITERIA]'
+            print(str(' ' * int(
+                int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+        elif learn is False:
+            str_ = '[OMEGA FIND] DE-OBFUSCATION MODE'
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+            print('-' * limit_char)
+            str_ = '[SCAN CRITERIA]'
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+        print('')
+
+        # Details
+        print(Style.BRIGHT + Fore.GREEN + '[SPECIFIED LOCATION] ' + Style.RESET_ALL + str(target_path))
+        if learn is True:
+            print(Style.BRIGHT + Fore.GREEN + '[LEARNING] ' + Style.RESET_ALL + str(learn))
+        else:
+            print(Style.BRIGHT + Fore.GREEN + '[LEARNING] ' + Style.RESET_ALL + str(learn))
 
         db_all = []
         lmt = []
@@ -216,7 +217,8 @@ def run_function_1(target_path, buffer_size=2048):
 
         """ Only Read Database If Exist And Continue (Pure logger mode) """
         if os.path.exists(mime_type_database):
-            cp.cpi(str('-- successfully found mime types database: ') + str(dir_now))
+            if verbosity is True:
+                print(str('-- successfully found mime types database: ') + str(dir_now))
             with codecs.open(mime_type_database, 'r', encoding='utf8') as fo:
                 for line in fo:
                     line = line.strip()
@@ -240,19 +242,22 @@ def run_function_1(target_path, buffer_size=2048):
                             lmt.append(line)
 
                         else:
-                            cp.cpi('-- mime type database anomaly:' + str(line))
+                            if verbosity is True:
+                                print('-- mime type database anomaly:' + str(line))
             fo.close()
 
         """ Read Database (Learned Buffer Read Results Mapped To File Suffixes) """
         learn_database = './db/database_learning.txt'
-        cp.cpi(str('-- attempting to read database:   ') + str(learn_database))
+        if verbosity is True:
+            print(str('-- attempting to read database:   ') + str(learn_database))
         trf = learn_database
         learning_br = []
         suffixes_br = []
         line_count = 0
 
         if os.path.exists(trf):
-            cp.cpi(str('-- reading learning database:              ') + str(learn_database))
+            if verbosity is True:
+                print(str('-- reading learning database:              ') + str(learn_database))
             with codecs.open(trf, 'r', encoding='utf8') as fo:
                 for line in fo:
                     line_count += 1
@@ -265,16 +270,36 @@ def run_function_1(target_path, buffer_size=2048):
                     if line not in learning_br:
                         learning_br.append(line)
 
+                        # update displayed known associations in loop for large databases to show progress.
+                        pr_str = str(Style.BRIGHT + Fore.GREEN + '[LEARNED DEFINITIONS] ' + Style.RESET_ALL + str(len(learning_br)))
+                        pyprogress.pr_technical_data(pr_str)
+
                         """ Add Suffix To List """
                         suffix_var = line_split_0.replace('-buffer-read', '')
                         if suffix_var not in suffixes_br:
                             suffixes_br.append(suffix_var)
 
                     if '-buffer-read' not in line.replace(' ', ''):
-                        print('-- learning database anomaly:', line)
+                        if verbosity is True:
+                            print('-- learning database anomaly:', line)
             fo.close()
+        print('')
+
+        # preliminarily scan target location
+        f_count = 0
+        if first_pass is True:
+            for dirName, subdirList, fileList in os.walk(target_path):
+                for fname in fileList:
+                    f_count += 1
+
+                    # update displayed known associations in loop for large databases to show progress.
+                    pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
+                    pyprogress.pr_technical_data(pr_str)
         else:
-            print()
+            print(Style.BRIGHT + Fore.GREEN + '[SKIPPING PRELIMINARY SCAN]' + Style.RESET_ALL)
+
+        print('')
+        print('-' * 120)
 
         """ Set Counters """
         buffer_read_exception_count_0 = 0
@@ -285,9 +310,7 @@ def run_function_1(target_path, buffer_size=2048):
         learn_count = 0
         buffer_failed_count = 0
         buffer_passed_count = 0
-        buffer_read_exception_count_recovered = 0
         error_getting_suffix_count = 0
-        error_getsize_count = 0
         mime_type_read_exception_count_0 = 0
         mime_type_read_exception_count_1 = 0
         mime_passed_inspection_count = 0
@@ -306,64 +329,25 @@ def run_function_1(target_path, buffer_size=2048):
         new_file_extension_mt = []
         new_file_extension_br = []
         new_learned = []
-
         unrecognized_buffer = []
-        unrecognized_mime = []
-
-        """ Display Scan Criteria And Present Confirmation Opportunity """
-        print('')
-        pr_row(limit_char)
-
-        # Header
-        if learn is True:
-            cp.cpf('[WARNING!]      [WARNING!]      [WARNING!]      [WARNING!]      [WARNING!]      [WARNING!]       [WARNING!]')
-            pr_row(limit_char)
-            print('')
-            cp.cpi('[LEARNING CRITERIA]')
-        elif learn is False:
-            print('')
-            cp.cpi('[SCAN CRITERIA]')
-        print('')
-
-        # Details
-        print(Style.BRIGHT+Fore.MAGENTA + '[SPECIFIED LOCATION]                        ' + Style.BRIGHT+Fore.GREEN + str(target_path) + Style.RESET_ALL)
-        if learn is True:
-            print(Style.BRIGHT+Fore.MAGENTA+'[LEARNING]                          ' + Style.BRIGHT+Fore.RED+str(learn)+'   [WARNING!]' + Style.RESET_ALL)
-        else:
-            print(Style.BRIGHT+Fore.MAGENTA+'[LEARNING]                          ' + Style.BRIGHT+Fore.GREEN+str(learn)+Style.RESET_ALL)
-        print('')
-        print(Style.BRIGHT+Fore.MAGENTA+'[LEARNED DEFINITIONS]               ' + Style.BRIGHT+Fore.GREEN+str(len(learning_br))+Style.RESET_ALL)
-        print('')
-        pr_row(limit_char)
+        progress_bar_color = 'CYAN'
 
         if learn is True:
-            print('')
-            cp.cpf('[WARNING!]           LEARNING ENABLED')
-            print('')
-            print(Style.BRIGHT + Fore.MAGENTA + '[LEARNING]   ' + Style.BRIGHT+Fore.YELLOW + 'THIS IF SUCCESSFULL WILL ADD THE TRAINING DATA TO THE LEARNED DATABASE WHICH')
-            print(Style.BRIGHT + Fore.YELLOW + '                     WILL BE USED IN DE-OBFUSCATION SCANS & PERFORMING REVERSE SEARCHES!' + Style.RESET_ALL)
-            print('')
-            cp.cpf('[CATION!]            ENSURE ONLY TRUSTED DATA SETS!')
-            print('')
-            pr_row(limit_char)
-            print('')
             usr_choice = input('Press Y to learn or press any other key to abort [Enter] : ')
-            print('')
+            print('-' * limit_char)
+            str_ = '[OMEGA FIND] LEARNING'
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
 
         elif learn is False:
-            print('')
-            cp.cpp('[SCAN]   This program will attempt to de-obfuscate files in: ' + str(target_path))
-            pr_row(limit_char)
-            print('')
             usr_choice = input('Press Y to attempt de-obfuscation or press any other key to abort [Enter] : ')
-            print('')
+            print('-' * limit_char)
+            str_ = '[OMEGA FIND] DE-OBFUSCATING'
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+            progress_bar_color = 'RED'
+        print('')
 
         """ Continue If Compiled Database Lists Are Aligned """
         if usr_choice.lower() == 'y':
-            if learn is True:
-                cp.cpi('-- attempting to learn about files in location:', target_path)
-            elif learn is False:
-                cp.cpi('-- scanning location:', target_path)
 
             """ Walk User Specified Directory """
             for dirName, subdirList, fileList in os.walk(target_path):
@@ -378,18 +362,34 @@ def run_function_1(target_path, buffer_size=2048):
                     f = os.path.join(dirName, fname)
                     f = f.strip()
 
-                    """ Header """
-                    print('')
-                    pr_row(limit_char)
-                    print('')
-                    if learn is True:
-                        cp.cpi('[LEARNING]')
-                    elif learn is False:
-                        cp.cpi('[ATTEMPTING DE-OBFUSCATION]')
-                    print('')
-                    print(Style.BRIGHT+Fore.MAGENTA+'[FILES ENCOUNTERED] ' + Style.BRIGHT+Fore.GREEN+str(total_files_encountered)+Style.RESET_ALL)
-                    print(Style.BRIGHT+Fore.MAGENTA+'[TIME NOW] ' + Style.BRIGHT+Fore.GREEN+str(file_encountered_time_stamp)+Style.RESET_ALL)
-                    print(Style.BRIGHT+Fore.MAGENTA+'[PATH] ' + Style.BRIGHT+Fore.GREEN+str(f)+Style.RESET_ALL)
+                    if verbosity is True:
+                        print('')
+                        print('-' * limit_char)
+                        print('')
+
+                        if learn is True:
+                            print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND] ' + Style.RESET_ALL + 'Learning')
+                        elif learn is False:
+                            print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND] ' + Style.RESET_ALL + 'Attempting de-obfuscation')
+                        print(Style.BRIGHT+Fore.GREEN+'[FILES ENCOUNTERED] ' + Style.RESET_ALL + str(total_files_encountered))
+                        print(Style.BRIGHT+Fore.GREEN+'[TIME NOW] ' + Style.RESET_ALL + str(file_encountered_time_stamp))
+                        print(Style.BRIGHT+Fore.GREEN+'[PATH] ' + Style.RESET_ALL + str(f))
+
+                    else:
+                        try:
+                            pyprogress.progress_bar(part=int(total_files_encountered), whole=int(f_count),
+                                                    pre_append=str(Style.BRIGHT + Fore.GREEN + '[LEARNING] ' + Style.RESET_ALL),
+                                                    append=str(' ' + str(total_files_encountered) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [' + str(learn_count) + ']' + Fore.RED + ' [' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL),
+                                                    encapsulate_l='|',
+                                                    encapsulate_r='|',
+                                                    encapsulate_l_color=progress_bar_color,
+                                                    encapsulate_r_color=progress_bar_color,
+                                                    progress_char=' ',
+                                                    bg_color=progress_bar_color,
+                                                    factor=50,
+                                                    multiplier=multiplier)
+                        except Exception as e:
+                            pass
 
                     """ Get File Name Suffix """
                     fe = ''
@@ -415,7 +415,8 @@ def run_function_1(target_path, buffer_size=2048):
                         bool_new_br_suffix = True
                         if fe not in new_file_extension_br:
                             new_file_extension_br.append(fe)
-                    print(Style.BRIGHT + Fore.MAGENTA + '[ALLEGED SUFFIX] ' + Style.BRIGHT + Fore.GREEN + str(fe) + Style.RESET_ALL)
+                    if verbosity is True:
+                        print(Style.BRIGHT + Fore.GREEN + '[ALLEGED SUFFIX] ' + Style.RESET_ALL + str(fe))
 
                     """ Initiate And Clear Each Iteration """
                     b = ''
@@ -480,7 +481,7 @@ def run_function_1(target_path, buffer_size=2048):
                         mime_type_read_exception_count_0 += 1
                         e = '[error reading mime type (first try)] ' + str(e)
                         e_tmp_2 = e
-                        log_file = ef
+                        # log_file = ef
                         # logger(log_file, e, f)  # Uncomment to debug
                     if e_tmp_2 != '':
                         try:
@@ -494,7 +495,8 @@ def run_function_1(target_path, buffer_size=2048):
                             e = '[error reading mime type (second try)] ' + str(e)
                             log_file = ef
                             logger(log_file, e, f)
-                    print(Style.BRIGHT + Fore.MAGENTA + '[MIME TYPE] ' + Style.BRIGHT + Fore.GREEN + str(m) + Style.RESET_ALL)
+                    if verbosity is True:
+                        print(Style.BRIGHT + Fore.GREEN + '[MIME TYPE] ' + Style.RESET_ALL + str(m))
 
                     """ Look For Suffix In Database And Store Associated Mime Types In A List """
                     mime_passed_inspection = False
@@ -513,11 +515,13 @@ def run_function_1(target_path, buffer_size=2048):
                                 ii = 0
                                 for database_mime_types in database_mime_type:
                                     if database_mime_type[ii] == m:
-                                        print(Style.BRIGHT + Fore.MAGENTA + '[COMPARING] ' + Style.BRIGHT + Fore.GREEN + str(m) + Style.BRIGHT + Fore.MAGENTA + ' [AGAINST] ' + Style.BRIGHT + Fore.GREEN + str(database_mime_type[ii]) + Style.RESET_ALL)
+                                        if verbosity is True:
+                                            print(Style.BRIGHT + Fore.GREEN + '[COMPARING] ' + Style.RESET_ALL + str(m) + Style.BRIGHT + Fore.GREEN + ' [AGAINST] ' + Style.BRIGHT + Fore.GREEN + str(database_mime_type[ii]) + Style.RESET_ALL)
                                         mime_passed_inspection = True
                                         mime_passed_inspection_count += 1
                                     else:
-                                        print(Style.BRIGHT + Fore.MAGENTA + '[COMPARING] ' + Style.BRIGHT + Fore.GREEN + str(m) + Style.BRIGHT + Fore.MAGENTA + ' [AGAINST] ' + Style.BRIGHT + Fore.RED + str(database_mime_type[ii]) + Style.RESET_ALL)
+                                        if verbosity is True:
+                                            print(Style.BRIGHT + Fore.GREEN + '[COMPARING] ' + Style.RESET_ALL + str(m) + Style.BRIGHT + Fore.GREEN + ' [AGAINST] ' + Style.BRIGHT + Fore.RED + str(database_mime_type[ii]) + Style.RESET_ALL)
                                     ii += 1
                                 if mime_passed_inspection is False:
                                     mime_failed_inspection_count += 1
@@ -525,8 +529,10 @@ def run_function_1(target_path, buffer_size=2048):
                     else:
                         mime_passed_inspection = False
                         mime_failed_inspection_count += 1
-                        print(Style.BRIGHT + Fore.MAGENTA + '[MIME TYPE EMPTY STRING] ' + Style.BRIGHT + Fore.GREEN + 'skipping comparison check' + Style.RESET_ALL)
-                    print(Style.BRIGHT + Fore.MAGENTA + '[BUFFER READ] ' + Style.BRIGHT + Fore.GREEN + str(b) + Style.RESET_ALL)
+                        if verbosity is True:
+                            print(Style.BRIGHT + Fore.GREEN + '[MIME TYPE EMPTY STRING] ' + Style.RESET_ALL + 'skipping comparison check')
+                    if verbosity is True:
+                        print(Style.BRIGHT + Fore.GREEN + '[BUFFER READ] ' + Style.RESET_ALL + str(b))
 
                     """ Continue If Buffer String & Set Default Boolean """
                     bool_learn = False
@@ -546,7 +552,8 @@ def run_function_1(target_path, buffer_size=2048):
                         for learning_brs in learning_br:
                             y_re = re.sub(digi_str, '', learning_br[i])
                             if y_re == x_re:
-                                print(Style.BRIGHT + Fore.MAGENTA + '[REGEX BUFFER MATCH] ' + Style.BRIGHT + Fore.GREEN + str(x_re) + Style.RESET_ALL)
+                                if verbosity is True:
+                                    print(Style.BRIGHT + Fore.GREEN + '[REGEX BUFFER MATCH] ' + Style.RESET_ALL + str(x_re))
                                 buffer_passed_inspection = True
                                 break
                             i += 1
@@ -555,59 +562,65 @@ def run_function_1(target_path, buffer_size=2048):
                         if buffer_passed_inspection is True:
                             buffer_passed_count += 1
                             bool_learn = False
-                            if learn is True:
-                                print(Style.BRIGHT + Fore.MAGENTA + '[LEARNED COUNTER] ' + Style.BRIGHT + Fore.GREEN + str(learn_count) + Style.RESET_ALL)
-                                print(Style.BRIGHT + Fore.MAGENTA + '[LEARNED] ' + Style.BRIGHT + Fore.RED + str(bool_learn) + Style.RESET_ALL)
-                                print(Style.BRIGHT + Fore.MAGENTA + '[LAST LEARNED] ' + Style.BRIGHT + Fore.GREEN + str(last_learned) + Style.RESET_ALL)
+                            if verbosity is True:
+                                if learn is True:
+                                    print(Style.BRIGHT + Fore.GREEN + '[LEARNED COUNTER] ' + Style.RESET_ALL + str(learn_count))
+                                    print(Style.BRIGHT + Fore.GREEN + '[LEARNED] ' + Style.RESET_ALL + str(bool_learn))
+                                    print(Style.BRIGHT + Fore.GREEN + '[LAST LEARNED] ' + Style.RESET_ALL + str(last_learned))
 
                         elif buffer_passed_inspection is False:
                             unrecognized_buffer.append(f)
                             buffer_failed_count += 1
 
                             if learn is True:
-                                print(Style.BRIGHT + Fore.MAGENTA + '[LEARNED COUNTER] ' + Style.BRIGHT + Fore.GREEN + str(learn_count) + Style.RESET_ALL)
+                                if verbosity is True:
+                                    print(Style.BRIGHT + Fore.GREEN + '[LEARNED COUNTER] ' + Style.RESET_ALL + str(learn_count))
                                 if key_buff_read not in new_learned:
                                     last_learned = str(datetime.datetime.now())
                                     new_learned.append(key_buff_read)
                                     learn_count += 1
                                     bool_learn = True
-                                    print(Style.BRIGHT + Fore.MAGENTA + '[LEARNED] ' + Style.BRIGHT + Fore.GREEN + str(bool_learn) + Style.RESET_ALL)
+                                    if verbosity is True:
+                                        print(Style.BRIGHT + Fore.GREEN + '[LEARNED] ' + Style.RESET_ALL + str(bool_learn))
                                     with codecs.open(learn_database, 'a', encoding='utf8') as fo:
                                         to_file = key_buff_read
                                         fo.write(to_file + '\n')
                                 elif key_buff_read in new_learned:
                                     bool_learn = False
-                                    print(Style.BRIGHT + Fore.MAGENTA + '[LEARNED] ' + Style.BRIGHT + Fore.RED + str(bool_learn) + Style.RESET_ALL)
-                                print(Style.BRIGHT + Fore.MAGENTA + '[LAST LEARNED] ' + Style.BRIGHT + Fore.GREEN + str(last_learned) + Style.RESET_ALL)
+                                    if verbosity is True:
+                                        print(Style.BRIGHT + Fore.GREEN + '[LEARNED] ' + Style.RESET_ALL + str(bool_learn))
+                                if verbosity is True:
+                                    print(Style.BRIGHT + Fore.GREEN + '[LAST LEARNED] ' + Style.RESET_ALL + str(last_learned))
 
                     else:
                         bool_buffer_data_false_count += 1
                         if learn is True:
                             bool_data_buffer = False
-                            print(Style.BRIGHT + Fore.MAGENTA + '[LEARNED COUNTER] ' + Style.BRIGHT + Fore.GREEN + str(learn_count) + Style.RESET_ALL)
                             bool_learn = False
-                            print(Style.BRIGHT + Fore.MAGENTA + '[LEARNED] ' + Style.BRIGHT + Fore.GREEN + str(bool_learn) + Style.RESET_ALL)
+                            if verbosity is True:
+                                print(Style.BRIGHT + Fore.GREEN + '[LEARNED COUNTER] ' + Style.RESET_ALL + str(learn_count))
+                                print(Style.BRIGHT + Fore.GREEN + '[LEARNED] ' + Style.RESET_ALL + str(bool_learn))
                         elif learn is False:
                             buffer_failed_count += 1
                             buffer_passed_inspection = False
                             bool_data_buffer = False
 
-                    if learn is False:
-                        if mime_passed_inspection is True:
-                            print(Style.BRIGHT + Fore.MAGENTA + '[MIME RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + Style.BRIGHT + Fore.GREEN + str(mime_passed_inspection) + Style.RESET_ALL)
-                        elif mime_passed_inspection is False:
-                            print(Style.BRIGHT + Fore.MAGENTA + '[MIME RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + Style.BRIGHT + Fore.RED + str(mime_passed_inspection) + Style.RESET_ALL)
-                        if buffer_passed_inspection is True:
-                            print(Style.BRIGHT + Fore.MAGENTA + '[BUFFER RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + Style.BRIGHT + Fore.GREEN + str(buffer_passed_inspection) + Style.RESET_ALL)
-                        elif buffer_passed_inspection is False:
-                            print(Style.BRIGHT + Fore.MAGENTA + '[BUFFER RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + Style.BRIGHT + Fore.RED + str(buffer_passed_inspection) + Style.RESET_ALL)
-                        print(Style.BRIGHT + Fore.MAGENTA + '[NEW MIME DATABASE SUFFIX] ' + Style.BRIGHT + Fore.GREEN + str(bool_new_mt_suffix) + Style.RESET_ALL)
-                        print(Style.BRIGHT + Fore.MAGENTA + '[NEW BUFFER DATABASE SUFFIX] ' + Style.BRIGHT + Fore.GREEN + str(bool_new_br_suffix) + Style.RESET_ALL)
-                    print(Style.BRIGHT + Fore.MAGENTA + '[BUFFER PERMISSION DENIED ATTEMPT 1] ' + Style.BRIGHT + Fore.GREEN + str(buffer_permission_denied_attempt_1) + Style.RESET_ALL)
-                    print(Style.BRIGHT + Fore.MAGENTA + '[BUFFER PERMISSION DENIED ATTEMPT 2] ' + Style.BRIGHT + Fore.GREEN + str(buffer_permission_denied_attempt_2) + Style.RESET_ALL)
-                    print(Style.BRIGHT + Fore.MAGENTA + '[MIME PERMISSION DENIED ATTEMPT 1] ' + Style.BRIGHT + Fore.GREEN + str(mime_permission_denied_attempt_1) + Style.RESET_ALL)
-                    print(Style.BRIGHT + Fore.MAGENTA + '[MIME PERMISSION DENIED ATTEMPT 2] ' + Style.BRIGHT + Fore.GREEN + str(mime_permission_denied_attempt_2) + Style.RESET_ALL)
-                    # print(Style.BRIGHT + Fore.MAGENTA + '[BUFFER DATA EXISTS] ' + Style.BRIGHT + Fore.GREEN + str(bool_data_buffer) + Style.RESET_ALL)
+                    if verbosity is True:
+                        if learn is False:
+                            if mime_passed_inspection is True:
+                                print(Style.BRIGHT + Fore.GREEN + '[MIME RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + Style.RESET_ALL + str(mime_passed_inspection))
+                            elif mime_passed_inspection is False:
+                                print(Style.BRIGHT + Fore.GREEN + '[MIME RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + Style.RESET_ALL + str(mime_passed_inspection))
+                            if buffer_passed_inspection is True:
+                                print(Style.BRIGHT + Fore.GREEN + '[BUFFER RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + Style.BRIGHT + str(buffer_passed_inspection))
+                            elif buffer_passed_inspection is False:
+                                print(Style.BRIGHT + Fore.GREEN + '[BUFFER RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + Style.BRIGHT + str(buffer_passed_inspection))
+                            print(Style.BRIGHT + Fore.GREEN + '[NEW MIME DATABASE SUFFIX] ' + Style.RESET_ALL + str(bool_new_mt_suffix))
+                            print(Style.BRIGHT + Fore.GREEN + '[NEW BUFFER DATABASE SUFFIX] ' + Style.RESET_ALL + str(bool_new_br_suffix))
+                        print(Style.BRIGHT + Fore.GREEN + '[BUFFER PERMISSION DENIED ATTEMPT 1] ' + Style.RESET_ALL + str(buffer_permission_denied_attempt_1))
+                        print(Style.BRIGHT + Fore.GREEN + '[BUFFER PERMISSION DENIED ATTEMPT 2] ' + Style.RESET_ALL + str(buffer_permission_denied_attempt_2))
+                        print(Style.BRIGHT + Fore.GREEN + '[MIME PERMISSION DENIED ATTEMPT 1] ' + Style.RESET_ALL + str(mime_permission_denied_attempt_1))
+                        print(Style.BRIGHT + Fore.GREEN + '[MIME PERMISSION DENIED ATTEMPT 2] ' + Style.RESET_ALL + str(mime_permission_denied_attempt_2))
 
                     if buffer_passed_inspection is True:
                         log_file_inspection = log_file_passed_inspection
@@ -657,9 +670,9 @@ def run_function_1(target_path, buffer_size=2048):
                         fo.write(to_file_15 + '\n')
                         fo.write(''+'\n')
                     fo.close()
-            print('')
-            pr_row(limit_char)
-            print('')
+
+            print('\n')
+            print('-'*limit_char)
 
             log_report = dir_now + '/log_report.txt'
 
@@ -700,57 +713,64 @@ def run_function_1(target_path, buffer_size=2048):
             fo_report.close()
 
             if learn is True:
-                cp.cpi('[LEARNING RESULTS]')
+                str_ = '[LEARNING RESULTS]'
+                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
             elif learn is False:
-                cp.cpi('[SCAN RESULTS]')
+                str_ = '[SCAN RESULTS]'
+                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+            print('')
 
-            print('')
-            print(Style.BRIGHT + Fore.MAGENTA + '[INITIATION TIME] ' + Style.BRIGHT + Fore.GREEN + str(time_now) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[COMPLETION TIME] ' + Style.BRIGHT + Fore.GREEN + str(datetime.datetime.now()) + Style.RESET_ALL)
-            print('')
-            print(Style.BRIGHT + Fore.MAGENTA + '[LOCATION] ' + Style.BRIGHT + Fore.GREEN + str(target_path) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[TOTAL FILES ENCOUNTERED] ' + Style.BRIGHT + Fore.GREEN + str(total_files_encountered) + Style.RESET_ALL)
-            print('')
+            print(Style.BRIGHT + Fore.GREEN + '[INITIATION TIME] ' + Style.RESET_ALL + str(time_now))
+            print(Style.BRIGHT + Fore.GREEN + '[COMPLETION TIME] ' + Style.RESET_ALL + str(datetime.datetime.now()))
+            print(Style.BRIGHT + Fore.GREEN + '[TOTAL FILES ENCOUNTERED] ' + Style.RESET_ALL + str(total_files_encountered))
             if learn is True:
-                print(Style.BRIGHT + Fore.MAGENTA + '[LEARNED] ' + Style.BRIGHT + Fore.GREEN + str(learn_count) + Style.RESET_ALL)
+                print(Style.BRIGHT + Fore.GREEN + '[LEARNED] ' + Style.RESET_ALL + str(learn_count))
             elif learn is False:
-                print(Style.BRIGHT + Fore.MAGENTA + '[PASSED BUFFER INSPECTION] ' + Style.BRIGHT + Fore.GREEN + str(buffer_passed_count) + Style.RESET_ALL)
-                print(Style.BRIGHT + Fore.MAGENTA + '[FAILED BUFFER INSPECTION] ' + Style.BRIGHT + Fore.GREEN + str(buffer_failed_count) + Style.RESET_ALL)
-                print(Style.BRIGHT + Fore.MAGENTA + '[PASSED MIME INSPECTION] ' + Style.BRIGHT + Fore.GREEN + str(mime_passed_inspection_count) + Style.RESET_ALL)
-                print(Style.BRIGHT + Fore.MAGENTA + '[FAILED MIME INSPECTION] ' + Style.BRIGHT + Fore.GREEN + str(mime_failed_inspection_count) + Style.RESET_ALL)
+                print(Style.BRIGHT + Fore.GREEN + '[PASSED BUFFER INSPECTION] ' + Style.RESET_ALL + str(buffer_passed_count))
+                print(Style.BRIGHT + Fore.GREEN + '[FAILED BUFFER INSPECTION] ' + Style.RESET_ALL + str(buffer_failed_count))
+                print(Style.BRIGHT + Fore.GREEN + '[PASSED MIME INSPECTION] ' + Style.RESET_ALL + str(mime_passed_inspection_count))
+                print(Style.BRIGHT + Fore.GREEN + '[FAILED MIME INSPECTION] ' + Style.RESET_ALL + str(mime_failed_inspection_count))
 
-            print(Style.BRIGHT + Fore.MAGENTA + '[BUFFER EXCEPTIONS ATTEMPT 1] ' + Style.BRIGHT + Fore.GREEN + str(buffer_read_exception_count_0) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[BUFFER EXCEPTIONS ATTEMPT 2] ' + Style.BRIGHT + Fore.GREEN + str(buffer_read_exception_count_1) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[FOUND BUFFER DATA] ' + Style.BRIGHT + Fore.GREEN + str(bool_buffer_data_true_count) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[DID NOT FIND BUFFER DATA] ' + Style.BRIGHT + Fore.GREEN + str(bool_buffer_data_false_count) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[BUFFER PERMISSION EXCEPTIONS ATTEMPT 1] ' + Style.BRIGHT + Fore.GREEN + str(buffer_read_exception_permssion_count_0) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[BUFFER PERMISSION EXCEPTIONS ATTEMPT 2] ' + Style.BRIGHT + Fore.GREEN + str(buffer_read_exception_permssion_count_1) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[MIME EXCEPTIONS ATTEMPT 1] ' + Style.BRIGHT + Fore.GREEN + str(mime_type_read_exception_count_0) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[MIME EXCEPTIONS ATTEMPT 2] ' + Style.BRIGHT + Fore.GREEN + str(mime_type_read_exception_count_1) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[NEW SUFFIXES ENCOUNTERED NOT IN MIME DATABASE COUNT] ' + Style.BRIGHT + Fore.GREEN + str(len(new_file_extension_mt)) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[NEW SUFFIXES ENCOUNTERED NOT IN BUFFER DATABASE COUNT] ' + Style.BRIGHT + Fore.GREEN + str(len(new_file_extension_br)) + Style.RESET_ALL)
+            print(Style.BRIGHT + Fore.GREEN + '[BUFFER EXCEPTIONS ATTEMPT 1] ' + Style.RESET_ALL + str(buffer_read_exception_count_0))
+            print(Style.BRIGHT + Fore.GREEN + '[BUFFER EXCEPTIONS ATTEMPT 2] ' + Style.RESET_ALL + str(buffer_read_exception_count_1))
+            print(Style.BRIGHT + Fore.GREEN + '[FOUND BUFFER DATA] ' + Style.RESET_ALL + str(bool_buffer_data_true_count))
+            print(Style.BRIGHT + Fore.GREEN + '[DID NOT FIND BUFFER DATA] ' + Style.RESET_ALL + str(bool_buffer_data_false_count))
+            print(Style.BRIGHT + Fore.GREEN + '[BUFFER PERMISSION EXCEPTIONS ATTEMPT 1] ' + Style.RESET_ALL + str(buffer_read_exception_permssion_count_0))
+            print(Style.BRIGHT + Fore.GREEN + '[BUFFER PERMISSION EXCEPTIONS ATTEMPT 2] ' + Style.RESET_ALL + str(buffer_read_exception_permssion_count_1))
+            print(Style.BRIGHT + Fore.GREEN + '[MIME EXCEPTIONS ATTEMPT 1] ' + Style.RESET_ALL + str(mime_type_read_exception_count_0))
+            print(Style.BRIGHT + Fore.GREEN + '[MIME EXCEPTIONS ATTEMPT 2] ' + Style.RESET_ALL + str(mime_type_read_exception_count_1))
+            print(Style.BRIGHT + Fore.GREEN + '[NEW SUFFIXES ENCOUNTERED NOT IN MIME DATABASE COUNT] ' + Style.RESET_ALL + str(len(new_file_extension_mt)))
+            print(Style.BRIGHT + Fore.GREEN + '[NEW SUFFIXES ENCOUNTERED NOT IN BUFFER DATABASE COUNT] ' + Style.RESET_ALL + str(len(new_file_extension_br)))
             if len(unrecognized_buffer) == 1:
-                print(Style.BRIGHT + Fore.MAGENTA + '[OBFUSCATED OR UNRECOGNIZED] ' + Style.BRIGHT + Fore.GREEN + str(unrecognized_buffer[0]) + Style.RESET_ALL)
+                print(Style.BRIGHT + Fore.GREEN + '[OBFUSCATED OR UNRECOGNIZED] ' + Style.RESET_ALL + str(unrecognized_buffer[0]))
             if len(unrecognized_buffer) == 2:
-                print(Style.BRIGHT + Fore.MAGENTA + '[OBFUSCATED OR UNRECOGNIZED] ' + Style.BRIGHT + Fore.GREEN + str(unrecognized_buffer[1]) + Style.RESET_ALL)
+                print(Style.BRIGHT + Fore.GREEN + '[OBFUSCATED OR UNRECOGNIZED] ' + Style.RESET_ALL + str(unrecognized_buffer[1]))
             if len(unrecognized_buffer) == 3:
-                print(Style.BRIGHT + Fore.MAGENTA + '[OBFUSCATED OR UNRECOGNIZED] ' + Style.BRIGHT + Fore.GREEN + str(unrecognized_buffer[2]) + Style.RESET_ALL)
+                print(Style.BRIGHT + Fore.GREEN + '[OBFUSCATED OR UNRECOGNIZED] ' + Style.RESET_ALL + str(unrecognized_buffer[2]))
             if len(unrecognized_buffer) > 3:
-                print(Style.BRIGHT + Fore.MAGENTA + '[MORE OBFUSCATED OR UNRECOGNIZED FILES AVAILABLE IN LOG FILE] ' + Style.BRIGHT + Fore.GREEN + str(log_file_failed_inspection) + Style.RESET_ALL)
-            print(Style.BRIGHT + Fore.MAGENTA + '[LOG FILES] ' + Style.BRIGHT + Fore.GREEN + str(dir_now) + Style.RESET_ALL)
+                print(Style.BRIGHT + Fore.GREEN + '[MORE OBFUSCATED OR UNRECOGNIZED FILES AVAILABLE IN LOG FILE] ' + Style.RESET_ALL + str(log_file_failed_inspection))
+            print(Style.BRIGHT + Fore.GREEN + '[LOG FILES] ' + Style.RESET_ALL + str(dir_now))
             print('')
-            pr_row(limit_char)
-            print('')
-            cp.cpi('[POST SCAN OPTIONS]')
-            print('')
-            cp.cpi('1. Display all obfuscated or unrecognized files.')
-            print('')
-            usr_choice_1 = input('Enter: ')
-            if usr_choice_1 == '1':
-                for _ in unrecognized_buffer:
-                    print(Style.BRIGHT + Fore.MAGENTA + '[OBFUSCATED OR UNRECOGNIZED] ' + Style.BRIGHT + Fore.GREEN + str(_) + Style.RESET_ALL)
-            print('')
-            pr_row(limit_char)
+            print('-'*limit_char)
+            if learn is False:
+                str_ = '[POST SCAN OPTIONS]'
+                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+                print('')
+                print('1. Display all obfuscated or unrecognized files.')
+                print('')
+                usr_choice_1 = input('Enter: ')
+                print('-' * limit_char)
+                if usr_choice_1 == '1':
+                    str_ = '[DISPLAYING POTENTIALLY DE-OBFUSCATED FILES]'
+                    print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+                    print('')
+                    for _ in unrecognized_buffer:
+                        print(Style.BRIGHT + Fore.GREEN + '[OBFUSCATED OR UNRECOGNIZED] ' + Style.RESET_ALL + str(_))
+                print('')
+                print('-'*limit_char)
+            str_ = '[COMPLETE]'
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+            print('-' * limit_char)
             print('')
 
 
@@ -829,7 +849,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
     print(str(' ' * 40) + Style.BRIGHT + Fore.GREEN + '[PERFORMING PRIMARY OPERATION] OMEGA FIND' + Style.RESET_ALL)
     print('')
     print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND]  ' + Style.RESET_ALL + 'Attempting to read each file into memory and compare buffer to known buffers for suffix specified.')
-    print(Style.BRIGHT + Fore.GREEN + '[INFORMATION] ' + Style.RESET_ALL + 'Like files may be included in results. This is normal and expected behaviour.')
+    print(Style.BRIGHT + Fore.GREEN + '[INFORMATION] ' + Style.RESET_ALL + 'Similar files may be included in results. This is normal and expected behaviour.')
     print('')
     f_i = 0
     f_match = []
@@ -843,7 +863,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
             if verbosity is False and first_pass is True:
                 try:
                     pyprogress.progress_bar(part=int(f_i), whole=int(f_count),
-                                            pre_append=str(Style.BRIGHT + Fore.GREEN + '[SCANNING] '+Style.RESET_ALL),
+                                            pre_append=str(Style.BRIGHT + Fore.GREEN + '[SCANNING] ' + Style.RESET_ALL),
                                             append=str(' ' + str(f_i) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [' + str(len(f_match)) + ']' + Fore.RED + ' [' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL),
                                             encapsulate_l='|',
                                             encapsulate_r='|',
@@ -854,8 +874,6 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
                                             factor=50,
                                             multiplier=multiplier)
                 except Exception as e:
-                    print('')
-                    print(e)
                     pass
             else:
                 print('-' * 120)
@@ -954,7 +972,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
     print('')
     print('-' * 120)
     print('')
-    print(str(' ' * 56) + Style.BRIGHT + Fore.GREEN + '[MENU]' + Style.RESET_ALL)
+    print(str(' ' * 56) + Style.BRIGHT + Fore.GREEN + '[MENU]')
     print('')
     print(Style.BRIGHT + Fore.GREEN + ' [OPEN RESULTS FILE] ' + Style.RESET_ALL + '1' + '                                                                           ' + Style.BRIGHT + Fore.GREEN + ' [DISPLAY RESULTS]   ' + Style.RESET_ALL + '3')
     print(Style.BRIGHT + Fore.GREEN + ' [OPEN ERROR FILE]   ' + Style.RESET_ALL + '2' + '                                                                           ' + Style.BRIGHT + Fore.GREEN + ' [DISPLAY ERRORS]    ' + Style.RESET_ALL + '4')
@@ -1057,7 +1075,8 @@ elif '-scan' in sys.argv:
     target_path = sys.argv[idx+1]
 
     if os.path.exists(target_path) and os.path.isdir(target_path) is True:
-        run_function_1(target_path, buffer_size=buffer_size)
+        cc()
+        run_function_1(target_path, buffer_size=buffer_size, first_pass=first_pass)
     else:
         print('-- invalid path')
 
@@ -1068,7 +1087,8 @@ elif '-learn' in sys.argv:
     target_path = sys.argv[idx+1]
 
     if os.path.exists(target_path) and os.path.isdir(target_path) is True:
-        run_function_1(target_path, buffer_size=buffer_size)
+        cc()
+        run_function_1(target_path, buffer_size=buffer_size, first_pass=first_pass)
     else:
         print('-- invalid path')
 
@@ -1081,6 +1101,7 @@ elif '-find' in sys.argv and '-suffix' in sys.argv:
         suffix = sys.argv[idx+1]
 
         if os.path.exists(target_path):
+            cc()
             omega_find(target_path=target_path, suffix=suffix, buffer_size=buffer_size, first_pass=first_pass, verbosity=verbosity)
         else:
             print('-- invalid path')
