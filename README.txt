@@ -1,4 +1,4 @@
-""" Written by Benjamin Jack Cullen aka Holographic_Sol """
+An extremely powerful search and define forensics tool. Written by Benjamin Jack Cullen aka Holographic_Sol.
 
 OMEGA FIND
 
