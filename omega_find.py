@@ -188,6 +188,7 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
             print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
         print('')
         print(Style.BRIGHT + Fore.GREEN + '[SPECIFIED LOCATION] ' + Style.RESET_ALL + str(target_path))
+        print(Style.BRIGHT + Fore.GREEN + '[BUFFER SIZE] ' + Style.RESET_ALL + str(buffer_size))
         if learn is True:
             print(Style.BRIGHT + Fore.GREEN + '[LEARNING] ' + Style.RESET_ALL + str(learn))
         else:
@@ -484,7 +485,7 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                         if learn is True:
                             append_str_ = str(' ' + str(total_files_encountered) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [learned:' + str(learn_count) + ']' + Fore.RED + ' [exception:' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL)
                         else:
-                            append_str_ = str(' ' + str(total_files_encountered) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [pass:' + str(buffer_passed_count) + ']' + Fore.RED + ' [fail:' + str(buffer_failed_count) + ']' + Style.RESET_ALL)
+                            append_str_ = str(' ' + str(total_files_encountered) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [pass:' + str(buffer_passed_inspection_count) + ']' + Fore.RED + ' [fail:' + str(buffer_failed_count) + ']' + Style.RESET_ALL)
                         try:
                             pyprogress.progress_bar(part=int(total_files_encountered), whole=int(f_count),
                                                     pre_append=str(Style.BRIGHT + Fore.GREEN + pre_append_mode + Style.RESET_ALL),
