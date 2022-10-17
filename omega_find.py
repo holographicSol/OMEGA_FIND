@@ -234,9 +234,11 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
 
         # preliminarily scan target location
         f_count = 0
+        f_item = []
         if first_pass is True:
             for dirName, subdirList, fileList in os.walk(target_path):
                 for fname in fileList:
+                    f_item.append(str(os.path.join(dirName, fname)))
                     f_count += 1
                     pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
                     pyprogress.pr_technical_data(pr_str)
@@ -285,13 +287,11 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
 
             digi_str = r'[0-9]'
 
-            """ Walk User Specified Directory """
-            for dirName, subdirList, fileList in os.walk(target_path):
-                for fname in fileList:
+            """ Iterate files """
+            for _ in f_item:
+                if os.path.exists(_):
                     total_files_encountered += 1
-
-                    f = os.path.join(dirName, fname)
-                    f = f.strip()
+                    f = _.strip()
 
                     """ Get File Name Suffix """
                     fe = pathlib.Path(f).suffix
@@ -461,6 +461,8 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                                                     multiplier=multiplier)
                         except Exception as e:
                             print(e)
+                else:
+                    f_count -= 1
 
             print('\n')
             print('-'*limit_char)
@@ -596,8 +598,10 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
         print('')
         print(str(' ' * 47) + Style.BRIGHT + Fore.GREEN + '[SCANNING TARGET LOCATION]' + Style.RESET_ALL)
         f_count = 0
+        f_item = []
         for dirName, subdirList, fileList in os.walk(target_path):
             for fname in fileList:
+                f_item.append(str(os.path.join(dirName, fname)))
                 f_count += 1
                 pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
                 pyprogress.pr_technical_data(pr_str)
@@ -617,10 +621,11 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
     f_match = []
     f_error = []
     f_all = []
-    for dirName, subdirList, fileList in os.walk(target_path):
-        for fname in fileList:
-            fullpath = os.path.join(dirName, fname)
+    """ Iterate files """
+    for _ in f_item:
+        if os.path.exists(_):
             f_i += 1
+            fullpath = _.strip()
 
             if verbosity is False and first_pass is True:
                 try:
@@ -718,6 +723,8 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
                     f_all.append('[BUFFER MATCH] [' + fullpath + '] ' + str(x_re))
                     logger_omega_find_result(log_file=log_result_file, fullpath=fullpath, buffer=x_re)
                 i += 1
+        else:
+            f_count -= 1
     print('')
     print('')
     print('-' * 120)
