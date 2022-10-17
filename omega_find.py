@@ -39,7 +39,6 @@ import pyprogress
 
 encode = u'\u5E73\u621015\u200e\U0001d6d1,'
 verbosity = False
-first_pass = True
 ei = 0
 rf = ()
 learn = False
@@ -133,7 +132,7 @@ def logger_omega_find_result(log_file='', fullpath='', buffer=''):
     fo.close()
 
 
-def scan_learn(target_path, buffer_size=2048, first_pass=False):
+def scan_learn(target_path, buffer_size=2048):
     global ei
     global learn
     global verbosity
@@ -235,15 +234,12 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
         # preliminarily scan target location
         f_count = 0
         f_item = []
-        if first_pass is True:
-            for dirName, subdirList, fileList in os.walk(target_path):
-                for fname in fileList:
-                    f_item.append(str(os.path.join(dirName, fname)))
-                    f_count += 1
-                    pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
-                    pyprogress.pr_technical_data(pr_str)
-        else:
-            print(Style.BRIGHT + Fore.GREEN + '[SKIPPING PRELIMINARY SCAN]' + Style.RESET_ALL)
+        for dirName, subdirList, fileList in os.walk(target_path):
+            for fname in fileList:
+                f_item.append(str(os.path.join(dirName, fname)))
+                f_count += 1
+                pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
+                pyprogress.pr_technical_data(pr_str)
         print('')
         print('-' * 120)
 
@@ -545,7 +541,7 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
             print('')
 
 
-def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, verbosity=False):
+def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     """ uses database to perform a special search """
 
     buffer_read_exception_permssion_count_0 = 0
@@ -594,21 +590,16 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
     print('-' * 120)
 
     # preliminarily scan target location
-    if first_pass is True:
-        print('')
-        print(str(' ' * 47) + Style.BRIGHT + Fore.GREEN + '[SCANNING TARGET LOCATION]' + Style.RESET_ALL)
-        f_count = 0
-        f_item = []
-        for dirName, subdirList, fileList in os.walk(target_path):
-            for fname in fileList:
-                f_item.append(str(os.path.join(dirName, fname)))
-                f_count += 1
-                pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
-                pyprogress.pr_technical_data(pr_str)
-        print('')
-    else:
-        print(str(' ' * 43) + Style.BRIGHT + Fore.GREEN + '[SKIPPING SCANNING TARGET LOCATION]' + Style.RESET_ALL)
-        print('')
+    print('')
+    print(str(' ' * 47) + Style.BRIGHT + Fore.GREEN + '[SCANNING TARGET LOCATION]' + Style.RESET_ALL)
+    f_count = 0
+    f_item = []
+    for dirName, subdirList, fileList in os.walk(target_path):
+        for fname in fileList:
+            f_item.append(str(os.path.join(dirName, fname)))
+            f_count += 1
+            pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
+            pyprogress.pr_technical_data(pr_str)
     print('')
     print('-' * 120)
     print('')
@@ -627,7 +618,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
             f_i += 1
             fullpath = _.strip()
 
-            if verbosity is False and first_pass is True:
+            if verbosity is False:
                 try:
                     pyprogress.progress_bar(part=int(f_i), whole=int(f_count),
                                             pre_append=str(Style.BRIGHT + Fore.GREEN + '[SCANNING] ' + Style.RESET_ALL),
@@ -716,7 +707,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
             for _ in known_buffer:
                 y_re = re.sub(digi_str, '', _)
                 if y_re == x_re:
-                    if first_pass is False:
+                    if verbosity is True:
                         print(Style.BRIGHT + Fore.GREEN + '[REGEX BUFFER MATCH] [FILE] ' + Style.RESET_ALL + str(fullpath))
                         print(Style.BRIGHT + Fore.GREEN + '[BUFFER] ' + Style.RESET_ALL + str(x_re))
                     f_match.append(fullpath)
@@ -791,16 +782,14 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('    --buffer-size     Specify in bytes how much of each file will be read into the buffer.')
     print('                      If using --buffer-size full, then a scan/learning/find operation could take a much longer time.')
     print('                      --buffer-size can be used in combination with -scan, -learn and -find.')
-    print('    --first-pass      Used in conjunction with -find.')
-    print('                      Allows preliminary enumeration to be used for progress. Adds time to total time to complete while')
     print('                      allowing progress to be displayed.')
     print('    -suffix           Specify suffix. Used in combination with -find.')
     print('    -v                Output verbose. Only recommended when using -define and for development purposes. Else use --first-pass.')
     print('    -h                Displays this help message')
     print('')
-    print('    Example: omega_find --first-pass --buffer-size 2048 -find C:\ -suffix mp4')
-    print('    Example: omega_find --first-pass --buffer-size 2048 -learn C:\\')
-    print('    Example: omega_find --first-pass --buffer-size full -scan C:\\')
+    print('    Example: omega_find --buffer-size 2048 -find C:\ -suffix mp4')
+    print('    Example: omega_find --buffer-size 2048 -learn C:\\')
+    print('    Example: omega_find --buffer-size full -scan C:\\')
     print('    Example: omega_find -v -define jpg')
     print('')
     print('OmegaFind is only as good as its implementation. A working knowledge of filesystems is recommended in order to best')
@@ -819,9 +808,6 @@ if '--buffer-size' in sys.argv:
     elif sys.argv[idx + 1] == 'full':
         buffer_size = sys.argv[idx + 1]
 
-if '--first-pass' in sys.argv:
-    first_pass = True
-
 if '-define' in sys.argv:
     idx = sys.argv.index('-define')
     suffix = sys.argv[idx+1]
@@ -834,7 +820,7 @@ elif '-scan' in sys.argv:
 
     if os.path.exists(target_path) and os.path.isdir(target_path) is True:
         cc()
-        scan_learn(target_path=target_path, buffer_size=buffer_size, first_pass=first_pass)
+        scan_learn(target_path=target_path, buffer_size=buffer_size)
     else:
         print('-- invalid path')
 
@@ -846,7 +832,7 @@ elif '-learn' in sys.argv:
 
     if os.path.exists(target_path) and os.path.isdir(target_path) is True:
         cc()
-        scan_learn(target_path=target_path, buffer_size=buffer_size, first_pass=first_pass)
+        scan_learn(target_path=target_path, buffer_size=buffer_size)
     else:
         print('-- invalid path')
 
@@ -860,7 +846,7 @@ elif '-find' in sys.argv and '-suffix' in sys.argv:
 
         if os.path.exists(target_path):
             cc()
-            omega_find(target_path=target_path, suffix=suffix, buffer_size=buffer_size, first_pass=first_pass, verbosity=verbosity)
+            omega_find(target_path=target_path, suffix=suffix, buffer_size=buffer_size, verbosity=verbosity)
         else:
             print('-- invalid path')
 
