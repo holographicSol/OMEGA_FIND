@@ -98,7 +98,7 @@ def pr_row(limit_char):
     print(str('-' * limit_char))
 
 
-def exception_logger(log_file, e, f):
+def exception_logger(log_file='', error='', fullpath=''):
     global total_errors
     total_errors += 1
 
@@ -109,11 +109,11 @@ def exception_logger(log_file, e, f):
         open(log_file, 'w').close()
 
     log_tm_stamp = str(datetime.datetime.now())
-    e = str('[' + log_tm_stamp + '] [error_count ' + str(total_errors) + '] ' + str(e)).strip()
-    path_associated = str('[' + log_tm_stamp + '] [error_count ' + str(total_errors) + '] ' + str(f)).strip()
+    error = str('[' + log_tm_stamp + '] [error_count ' + str(total_errors) + '] ' + str(error)).strip()
+    path_associated = str('[' + log_tm_stamp + '] [error_count ' + str(total_errors) + '] ' + str(fullpath)).strip()
     with codecs.open(log_file, 'a', encoding='utf8') as fo:
         fo.write(path_associated + '\n')
-        fo.write(e + '\n')
+        fo.write(error + '\n')
     fo.close()
 
 
@@ -149,6 +149,7 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
     dir_now = './data/' + tm_stamp + '/'
     if not os.path.exists(dir_now):
         os.mkdir(dir_now)
+    log_report = dir_now + '/log_report.txt'
 
     """ Check Directory Exists """
     bool_created_tm_stamp_dir = False
@@ -255,8 +256,6 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
         bool_buffer_data_true_count = 0
         bool_buffer_data_false_count = 0
 
-        last_learned = ''
-        new_file_extension_br = []
         new_learned = []
         unrecognized_buffer = []
         progress_bar_color = 'CYAN'
@@ -284,77 +283,49 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
         """ Continue If Compiled Database Lists Are Aligned """
         if usr_choice.lower() == 'y':
 
+            digi_str = r'[0-9]'
+
             """ Walk User Specified Directory """
             for dirName, subdirList, fileList in os.walk(target_path):
                 for fname in fileList:
                     total_files_encountered += 1
-                    file_encountered_time_stamp = '[' + str(datetime.datetime.now()) + ']'
+
                     f = os.path.join(dirName, fname)
                     f = f.strip()
 
                     """ Get File Name Suffix """
-                    fe = ''
-                    try:
-                        fe = pathlib.Path(f).suffix
-                        fe = fe.replace('.', '').lower()
-                    except Exception as e:
-                        error_getting_suffix_count += 1
-                        log_file = ef
-                        e = '[suffix error] ' + str(e)
-                        exception_logger(log_file, e, f)
+                    fe = pathlib.Path(f).suffix
+                    fe = fe.replace('.', '').lower()
 
                     """ Check If Suffix In Databases """
-                    bool_new_br_suffix = False
                     if fe == '':
                         fe = 'no_file_extension'
-                    if fe not in suffixes_br:
-                        bool_new_br_suffix = True
-                        if fe not in new_file_extension_br:
-                            new_file_extension_br.append(fe)
+
                     if verbosity is True:
                         print(Style.BRIGHT + Fore.GREEN + '[ALLEGED SUFFIX] ' + Style.RESET_ALL + str(fe))
 
                     b = ''
-                    b_1 = ''
-                    b_2 = ''
-                    e_tmp = ''
                     key_buff_read = ''
                     buffer_permission_denied_attempt_1 = False
                     buffer_permission_denied_attempt_2 = False
                     try:
                         """ Allocate buffer size and read the file. """
-                        b_1 = magic.from_buffer(codecs.open(f, "rb").read(buffer_size))
-                        b_1 = str(b_1)
-                        b_1 = b_1.lower()
-                        b_1 = b_1.strip()
+                        b = str(magic.from_buffer(codecs.open(f, "rb").read(buffer_size))).lower().strip()
                     except Exception as e:
                         if 'permission denied' in str(e).lower():
                             buffer_read_exception_permssion_count_0 += 1
                             buffer_permission_denied_attempt_1 = True
                         buffer_read_exception_count_0 += 1
-                    if e_tmp != '':
                         try:
                             """ Allocate buffer size and read the file. """
-                            b_2 = magic.from_buffer(open(f, "r").read(buffer_size))
-                            b_2 = str(b_2)
-                            b_2 = b_2.lower()
-                            b_2 = b_2.strip()
+                            b = str(magic.from_buffer(open(f, "r").read(buffer_size))).lower().strip()
                         except Exception as e:
                             if 'permission denied' in str(e).lower():
                                 buffer_read_exception_permssion_count_1 += 1
                                 buffer_permission_denied_attempt_2 = True
                             buffer_read_exception_count_1 += 1
-                            log_file = ef
                             e = '[error reading buffer (second try)] ' + str(e)
-                            exception_logger(log_file, e, f)
-
-                    """ Use Most Defined Buffer String """
-                    b_1_len = len(b_1)
-                    b_2_len = len(b_2)
-                    if b_1_len >= b_2_len:
-                        b = b_1
-                    elif b_2_len > b_1_len:
-                        b = b_2
+                            exception_logger(log_file=ef, error=e, fullpath=f)
 
                     if verbosity is True:
                         print(Style.BRIGHT + Fore.GREEN + '[BUFFER READ] ' + Style.RESET_ALL + str(b))
@@ -363,13 +334,13 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                     bool_learn = False
                     buffer_passed_inspection = False
                     bool_data_buffer = False
-                    if len(b) > 0:
+
+                    if b:
                         key_buff_read = str(fe) + '-buffer-read ' + str(b)
                         bool_buffer_data_true_count += 1
                         bool_data_buffer = True
 
                         """ Buffer output may yield digits for timestamps, dimensions etc. """
-                        digi_str = r'[0-9]'
                         x_re = re.sub(digi_str, '', key_buff_read)
 
                         """ Iterate Comparing regex x to regex y """
@@ -391,7 +362,6 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                                 if learn is True:
                                     print(Style.BRIGHT + Fore.GREEN + '[LEARNED COUNTER] ' + Style.RESET_ALL + str(learn_count))
                                     print(Style.BRIGHT + Fore.GREEN + '[LEARNED] ' + Style.RESET_ALL + str(bool_learn))
-                                    print(Style.BRIGHT + Fore.GREEN + '[LAST LEARNED] ' + Style.RESET_ALL + str(last_learned))
                         elif buffer_passed_inspection is False:
                             unrecognized_buffer.append(f)
                             buffer_failed_count += 1
@@ -399,7 +369,6 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                                 if verbosity is True:
                                     print(Style.BRIGHT + Fore.GREEN + '[LEARNED COUNTER] ' + Style.RESET_ALL + str(learn_count))
                                 if key_buff_read not in new_learned:
-                                    last_learned = str(datetime.datetime.now())
                                     new_learned.append(key_buff_read)
                                     learn_count += 1
                                     bool_learn = True
@@ -408,12 +377,10 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                                     with codecs.open(learn_database, 'a', encoding='utf8') as fo:
                                         to_file = key_buff_read
                                         fo.write(to_file + '\n')
-                                elif key_buff_read in new_learned:
+                                else:
                                     bool_learn = False
                                     if verbosity is True:
                                         print(Style.BRIGHT + Fore.GREEN + '[LEARNED] ' + Style.RESET_ALL + str(bool_learn))
-                                if verbosity is True:
-                                    print(Style.BRIGHT + Fore.GREEN + '[LAST LEARNED] ' + Style.RESET_ALL + str(last_learned))
                     else:
                         bool_buffer_data_false_count += 1
                         if learn is True:
@@ -428,11 +395,7 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                             bool_data_buffer = False
                     if verbosity is True:
                         if learn is False:
-                            if buffer_passed_inspection is True:
-                                print(Style.BRIGHT + Fore.GREEN + '[BUFFER RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + Style.BRIGHT + str(buffer_passed_inspection))
-                            elif buffer_passed_inspection is False:
-                                print(Style.BRIGHT + Fore.GREEN + '[BUFFER RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + Style.BRIGHT + str(buffer_passed_inspection))
-                            print(Style.BRIGHT + Fore.GREEN + '[NEW BUFFER DATABASE SUFFIX] ' + Style.RESET_ALL + str(bool_new_br_suffix))
+                            print(Style.BRIGHT + Fore.GREEN + '[BUFFER RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + Style.BRIGHT + str(buffer_passed_inspection))
                         print(Style.BRIGHT + Fore.GREEN + '[BUFFER PERMISSION DENIED ATTEMPT 1] ' + Style.RESET_ALL + str(buffer_permission_denied_attempt_1))
                         print(Style.BRIGHT + Fore.GREEN + '[BUFFER PERMISSION DENIED ATTEMPT 2] ' + Style.RESET_ALL + str(buffer_permission_denied_attempt_2))
                     if buffer_passed_inspection is True:
@@ -452,7 +415,6 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                     to_file_4 = str('[ALLEGED SUFFIX] ' + str(fe))
                     to_file_6 = '[BUFFER] ' + str(key_buff_read)
                     to_file_7 = str('[BUFFER RECOGNIZED IN RELATION TO ALLEGED SUFFIX] ' + str(buffer_passed_inspection))
-                    to_file_10 = str('[NEW BUFFER DATABASE SUFFIX] ' + str(bool_new_br_suffix))
                     to_file_11 = str('[PERMISSION DENIED ATTEMPT 1] ' + str(buffer_permission_denied_attempt_1))
                     to_file_12 = str('[PERMISSION DENIED ATTEMPT 2] ' + str(buffer_permission_denied_attempt_2))
                     to_file_15 = str('[BUFFER DATA EXISTS] ' + str(bool_data_buffer))
@@ -463,7 +425,6 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                         fo.write(to_file_4 + '\n')
                         fo.write(to_file_6 + '\n')
                         fo.write(to_file_7 + '\n')
-                        fo.write(to_file_10 + '\n')
                         fo.write(to_file_11 + '\n')
                         fo.write(to_file_12 + '\n')
                         fo.write(to_file_15 + '\n')
@@ -479,7 +440,7 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                         elif learn is False:
                             print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND] ' + Style.RESET_ALL + 'Attempting de-obfuscation')
                         print(Style.BRIGHT+Fore.GREEN+'[FILES ENCOUNTERED] ' + Style.RESET_ALL + str(total_files_encountered))
-                        print(Style.BRIGHT+Fore.GREEN+'[TIME NOW] ' + Style.RESET_ALL + str(file_encountered_time_stamp))
+                        print(Style.BRIGHT+Fore.GREEN+'[TIME NOW] ' + Style.RESET_ALL + str(datetime.datetime.now()))
                         print(Style.BRIGHT+Fore.GREEN+'[PATH] ' + Style.RESET_ALL + str(f))
                     else:
                         if learn is True:
@@ -503,7 +464,6 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
 
             print('\n')
             print('-'*limit_char)
-            log_report = dir_now + '/log_report.txt'
 
             if not os.path.exists(log_report):
                 open(log_report, 'w').close()
@@ -528,8 +488,6 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                 fo_report.write('[DID NOT FIND BUFFER DATA] ' + str(bool_buffer_data_false_count) + '\n')
                 fo_report.write('[BUFFER PERMISSION EXCEPTIONS ATTEMPT 1] ' + str(buffer_read_exception_permssion_count_0) + '\n')
                 fo_report.write('[BUFFER PERMISSION EXCEPTIONS ATTEMPT 2] ' + str(buffer_read_exception_permssion_count_1) + '\n')
-                fo_report.write('[NEW SUFFIXES ENCOUNTERED NOT IN BUFFER DATABASE COUNT] ' + str(len(new_file_extension_br)) + '\n')
-                fo_report.write('[NEW SUFFIXES ENCOUNTERED NOT IN BUFFER DATABASE] ' + str(new_file_extension_br) + '\n')
             fo_report.close()
             if learn is True:
                 str_ = '[LEARNING RESULTS]'
@@ -552,7 +510,6 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
             print(Style.BRIGHT + Fore.GREEN + '[DID NOT FIND BUFFER DATA] ' + Style.RESET_ALL + str(bool_buffer_data_false_count))
             print(Style.BRIGHT + Fore.GREEN + '[BUFFER PERMISSION EXCEPTIONS ATTEMPT 1] ' + Style.RESET_ALL + str(buffer_read_exception_permssion_count_0))
             print(Style.BRIGHT + Fore.GREEN + '[BUFFER PERMISSION EXCEPTIONS ATTEMPT 2] ' + Style.RESET_ALL + str(buffer_read_exception_permssion_count_1))
-            print(Style.BRIGHT + Fore.GREEN + '[NEW SUFFIXES ENCOUNTERED NOT IN BUFFER DATABASE COUNT] ' + Style.RESET_ALL + str(len(new_file_extension_br)))
             if len(unrecognized_buffer) == 1:
                 print(Style.BRIGHT + Fore.GREEN + '[OBFUSCATED OR UNRECOGNIZED] ' + Style.RESET_ALL + str(unrecognized_buffer[0]))
             if len(unrecognized_buffer) == 2:
@@ -712,7 +669,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
                 f_all.append('[ERROR 0] [' + fullpath + '] ' + str(e))
                 if verbosity is True:
                     print(fullpath, e)
-                # exception_logger(log_file=log_error_file, e=str(e), f=fullpath) # uncomment for verbose logging
+                # exception_logger(log_file=log_error_file, error=str(e), fullpath=fullpath) # uncomment for verbose logging
 
                 try:
                     """ Allocate buffer size and read the file. """
@@ -733,7 +690,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, first_pass=True, ver
                     f_all.append('[ERROR 1] [' + fullpath + '] ' + str(e))
                     if verbosity is True:
                         print(fullpath, e)
-                    exception_logger(log_file=log_error_file, e=str(e), f=fullpath)
+                    exception_logger(log_file=log_error_file, error=e, fullpath=fullpath)
                     break
 
             """ Use Most Defined Buffer String """
