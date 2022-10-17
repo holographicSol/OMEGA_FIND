@@ -36,16 +36,13 @@ Command line arguments:
 --buffer-size     Specify in bytes how much of each file will be read into the buffer.
                   If using --buffer-size full, then a scan/learning/find operation could take a much longer time.
                   --buffer-size can be used in combination with -scan, -learn and -find.
---first-pass      Used in conjunction with -scan, -learn and -find.
-                  Allows preliminary enumeration to be used for progress but adds time to total time to complete.
-		  Recommended.
 -suffix           Specify suffix. Used in combination with -find.
--v                Output verbose. Only recommended when using -define and for development purposes. Else use --first-pass.
+-v                Output verbose. Only recommended when using -define and for development purposes.
 -h                Displays this help message
 
-Example: omega_find --first-pass --buffer-size 2048 -find C:\ -suffix mp4
-Example: omega_find --first-pass --buffer-size 2048 -learn C:\
-Example: omega_find --first-pass --buffer-size full -scan C:\
+Example: omega_find --buffer-size 2048 -find C:\ -suffix mp4
+Example: omega_find --buffer-size 2048 -learn C:\
+Example: omega_find --buffer-size full -scan C:\
 Example: omega_find -v -define jpg
 
 OmegaFind is only as good as its implementation. A working knowledge of filesystems is recommended in order to best
