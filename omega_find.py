@@ -612,11 +612,67 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     f_match = []
     f_error = []
     f_all = []
+    digi_str = r'[0-9]'
     """ Iterate files """
     for _ in f_item:
         if os.path.exists(_):
             f_i += 1
             fullpath = _.strip()
+
+            """ Initiate And Clear Each Iteration """
+            b = ''
+            key_buff_read = ''
+            try:
+                """ Allocate buffer size and read the file. """
+                if buffer_size == 'full':
+                    sz = int(os.path.getsize(fullpath))
+                    b = str(magic.from_buffer(codecs.open(fullpath, "rb").read(sz))).lower().strip()
+                else:
+                    b = str(magic.from_buffer(codecs.open(fullpath, "rb").read(buffer_size))).lower().strip()
+
+            except Exception as e:
+                if 'permission denied' in str(e).lower():
+                    buffer_read_exception_permssion_count_0 += 1
+                buffer_read_exception_count_0 += 1
+                f_error.append('[ERROR 0] [' + fullpath + '] ' + str(e))
+                f_all.append('[ERROR 0] [' + fullpath + '] ' + str(e))
+                if verbosity is True:
+                    print(fullpath, e)
+                try:
+                    """ Allocate buffer size and read the file. """
+                    if buffer_size == 'full':
+                        sz = int(os.path.getsize(fullpath))
+                        b = str(magic.from_buffer(open(fullpath, "r").read(sz))).lower().strip()
+                    else:
+                        b = str(magic.from_buffer(open(fullpath, "r").read(buffer_size))).lower().strip()
+
+                except Exception as e:
+                    if 'permission denied' in str(e).lower():
+                        buffer_read_exception_permssion_count_1 += 1
+                    buffer_read_exception_count_1 += 1
+                    f_error.append('[ERROR 1] [' + fullpath + '] ' + str(e))
+                    f_all.append('[ERROR 1] [' + fullpath + '] ' + str(e))
+                    if verbosity is True:
+                        print(fullpath, e)
+                    exception_logger(log_file=log_error_file, error=e, fullpath=fullpath)
+                    break
+
+            """ Buffer output may yield digits for timestamps, dimensions etc. """
+            key_buff_read = str(suffix) + '-buffer-read ' + str(b)
+            x_re = re.sub(digi_str, '', key_buff_read)
+
+            """ Iterate Comparing regex x to regex y """
+            i = 0
+            for _ in known_buffer:
+                y_re = re.sub(digi_str, '', _)
+                if y_re == x_re:
+                    if verbosity is True:
+                        print(Style.BRIGHT + Fore.GREEN + '[REGEX BUFFER MATCH] [FILE] ' + Style.RESET_ALL + str(fullpath))
+                        print(Style.BRIGHT + Fore.GREEN + '[BUFFER] ' + Style.RESET_ALL + str(x_re))
+                    f_match.append(fullpath)
+                    f_all.append('[BUFFER MATCH] [' + fullpath + '] ' + str(x_re))
+                    logger_omega_find_result(log_file=log_result_file, fullpath=fullpath, buffer=x_re)
+                i += 1
 
             if verbosity is False:
                 try:
@@ -640,80 +696,6 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
                 print(Style.BRIGHT + Fore.GREEN + '[PERMISSION ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_permssion_count_1))
                 print(Style.BRIGHT + Fore.GREEN + '[TOTAL ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_count_1))
                 print(Style.BRIGHT + Fore.GREEN + '[READING] ' + Style.RESET_ALL + str(fullpath))
-
-            """ Initiate And Clear Each Iteration """
-            b = ''
-            b_1 = ''
-            b_2 = ''
-            key_buff_read = ''
-            try:
-                """ Allocate buffer size and read the file. """
-                if buffer_size == 'full':
-                    sz = int(os.path.getsize(fullpath))
-                    b_1 = magic.from_buffer(codecs.open(fullpath, "rb").read(sz))
-                else:
-                    b_1 = magic.from_buffer(codecs.open(fullpath, "rb").read(buffer_size))
-                b_1 = str(b_1)
-                b_1 = b_1.lower()
-                b_1 = b_1.strip()
-
-            except Exception as e:
-                if 'permission denied' in str(e).lower():
-                    buffer_read_exception_permssion_count_0 += 1
-                buffer_read_exception_count_0 += 1
-                f_error.append('[ERROR 0] [' + fullpath + '] ' + str(e))
-                f_all.append('[ERROR 0] [' + fullpath + '] ' + str(e))
-                if verbosity is True:
-                    print(fullpath, e)
-                # exception_logger(log_file=log_error_file, error=str(e), fullpath=fullpath) # uncomment for verbose logging
-
-                try:
-                    """ Allocate buffer size and read the file. """
-                    if buffer_size == 'full':
-                        sz = int(os.path.getsize(fullpath))
-                        b_2 = magic.from_buffer(open(fullpath, "r").read(sz))
-                    else:
-                        b_2 = magic.from_buffer(open(fullpath, "r").read(buffer_size))
-                    b_2 = str(b_2)
-                    b_2 = b_2.lower()
-                    b_2 = b_2.strip()
-
-                except Exception as e:
-                    if 'permission denied' in str(e).lower():
-                        buffer_read_exception_permssion_count_1 += 1
-                    buffer_read_exception_count_1 += 1
-                    f_error.append('[ERROR 1] [' + fullpath + '] ' + str(e))
-                    f_all.append('[ERROR 1] [' + fullpath + '] ' + str(e))
-                    if verbosity is True:
-                        print(fullpath, e)
-                    exception_logger(log_file=log_error_file, error=e, fullpath=fullpath)
-                    break
-
-            """ Use Most Defined Buffer String """
-            b_1_len = len(b_1)
-            b_2_len = len(b_2)
-            if b_1_len >= b_2_len:
-                b = b_1
-            elif b_2_len > b_1_len:
-                b = b_2
-
-            """ Buffer output may yield digits for timestamps, dimensions etc. """
-            key_buff_read = str(suffix) + '-buffer-read ' + str(b)
-            digi_str = r'[0-9]'
-            x_re = re.sub(digi_str, '', key_buff_read)
-
-            """ Iterate Comparing regex x to regex y """
-            i = 0
-            for _ in known_buffer:
-                y_re = re.sub(digi_str, '', _)
-                if y_re == x_re:
-                    if verbosity is True:
-                        print(Style.BRIGHT + Fore.GREEN + '[REGEX BUFFER MATCH] [FILE] ' + Style.RESET_ALL + str(fullpath))
-                        print(Style.BRIGHT + Fore.GREEN + '[BUFFER] ' + Style.RESET_ALL + str(x_re))
-                    f_match.append(fullpath)
-                    f_all.append('[BUFFER MATCH] [' + fullpath + '] ' + str(x_re))
-                    logger_omega_find_result(log_file=log_result_file, fullpath=fullpath, buffer=x_re)
-                i += 1
         else:
             f_count -= 1
     print('')
