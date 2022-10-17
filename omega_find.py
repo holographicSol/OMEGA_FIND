@@ -784,7 +784,7 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('                      --buffer-size can be used in combination with -scan, -learn and -find.')
     print('                      allowing progress to be displayed.')
     print('    -suffix           Specify suffix. Used in combination with -find.')
-    print('    -v                Output verbose. Only recommended when using -define and for development purposes. Else use --first-pass.')
+    print('    -v                Output verbose. Only recommended when using -define and for development purposes.')
     print('    -h                Displays this help message')
     print('')
     print('    Example: omega_find --buffer-size 2048 -find C:\ -suffix mp4')
