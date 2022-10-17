@@ -1,8 +1,4 @@
-An extremely powerful search and define forensics tool.
-
-""" Written by Benjamin Jack Cullen aka Holographic_Sol
-
-To anyone doing anything they should not be doing, this will get you, and to any journalists crossing the north korean border... i am sorry.
+""" Written by Benjamin Jack Cullen aka Holographic_Sol """
 
 OMEGA FIND
 
@@ -29,4 +25,28 @@ Modes of operation:
 
     Define: Return concise/verbose information about a filetype specified.
 
-"""
+Command line arguments:
+
+-scan             Specifies a directory to scan.
+-learn            Instructs the program to learn from a specified location. Only use trusted locations/files.
+-find             Specify path. Finds files predicated upon known buffer read associations created by learning.
+                  A special and powerful search feature.
+-define           Attempts to lookup a definition for suffix specified.'
+
+--buffer-size     Specify in bytes how much of each file will be read into the buffer.
+                  If using --buffer-size full, then a scan/learning/find operation could take a much longer time.
+                  --buffer-size can be used in combination with -scan, -learn and -find.
+--first-pass      Used in conjunction with -scan, -learn and -find.
+                  Allows preliminary enumeration to be used for progress but adds time to total time to complete.
+		  Recommended.
+-suffix           Specify suffix. Used in combination with -find.
+-v                Output verbose. Only recommended when using -define and for development purposes. Else use --first-pass.
+-h                Displays this help message
+
+Example: omega_find --first-pass --buffer-size 2048 -find C:\ -suffix mp4
+Example: omega_find --first-pass --buffer-size 2048 -learn C:\
+Example: omega_find --first-pass --buffer-size full -scan C:\
+Example: omega_find -v -define jpg
+
+OmegaFind is only as good as its implementation. A working knowledge of filesystems is recommended in order to best
+implement OmegaFind.
