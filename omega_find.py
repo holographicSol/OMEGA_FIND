@@ -249,9 +249,7 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
         buffer_read_exception_permssion_count_0 = 0
         buffer_read_exception_permssion_count_1 = 0
         total_files_encountered = 0
-        learn_count = 0
-        buffer_failed_count = 0
-        buffer_passed_count = 0
+
         error_getting_suffix_count = 0
         bool_buffer_data_true_count = 0
         bool_buffer_data_false_count = 0
@@ -262,6 +260,11 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
         unrecognized_buffer = []
         progress_bar_color = 'CYAN'
         pre_append_mode = ' [LEARNING] '
+
+        learn_count = 0
+        buffer_failed_count = 0
+        buffer_passed_count = 0
+        buffer_passed_inspection_count = 0
 
         if learn is True:
             usr_choice = input('Press Y to learn or press any other key to abort [Enter] : ')
@@ -287,33 +290,6 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                     file_encountered_time_stamp = '[' + str(datetime.datetime.now()) + ']'
                     f = os.path.join(dirName, fname)
                     f = f.strip()
-
-                    if verbosity is True:
-                        print('')
-                        print('-' * limit_char)
-                        print('')
-                        if learn is True:
-                            print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND] ' + Style.RESET_ALL + 'Learning')
-                        elif learn is False:
-                            print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND] ' + Style.RESET_ALL + 'Attempting de-obfuscation')
-                        print(Style.BRIGHT+Fore.GREEN+'[FILES ENCOUNTERED] ' + Style.RESET_ALL + str(total_files_encountered))
-                        print(Style.BRIGHT+Fore.GREEN+'[TIME NOW] ' + Style.RESET_ALL + str(file_encountered_time_stamp))
-                        print(Style.BRIGHT+Fore.GREEN+'[PATH] ' + Style.RESET_ALL + str(f))
-                    else:
-                        try:
-                            pyprogress.progress_bar(part=int(total_files_encountered), whole=int(f_count),
-                                                    pre_append=str(Style.BRIGHT + Fore.GREEN + pre_append_mode + Style.RESET_ALL),
-                                                    append=str(' ' + str(total_files_encountered) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [' + str(learn_count) + ']' + Fore.RED + ' [' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL),
-                                                    encapsulate_l='|',
-                                                    encapsulate_r='|',
-                                                    encapsulate_l_color=progress_bar_color,
-                                                    encapsulate_r_color=progress_bar_color,
-                                                    progress_char=' ',
-                                                    bg_color=progress_bar_color,
-                                                    factor=50,
-                                                    multiplier=multiplier)
-                        except Exception as e:
-                            print(e)
 
                     """ Get File Name Suffix """
                     fe = ''
@@ -403,6 +379,7 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                                 if verbosity is True:
                                     print(Style.BRIGHT + Fore.GREEN + '[REGEX BUFFER MATCH] ' + Style.RESET_ALL + str(x_re))
                                 buffer_passed_inspection = True
+                                buffer_passed_inspection_count += 1
                                 break
                             i += 1
 
@@ -491,6 +468,37 @@ def scan_learn(target_path, buffer_size=2048, first_pass=False):
                         fo.write(to_file_15 + '\n')
                         fo.write(''+'\n')
                     fo.close()
+
+                    if verbosity is True:
+                        print('')
+                        print('-' * limit_char)
+                        print('')
+                        if learn is True:
+                            print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND] ' + Style.RESET_ALL + 'Learning')
+                        elif learn is False:
+                            print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND] ' + Style.RESET_ALL + 'Attempting de-obfuscation')
+                        print(Style.BRIGHT+Fore.GREEN+'[FILES ENCOUNTERED] ' + Style.RESET_ALL + str(total_files_encountered))
+                        print(Style.BRIGHT+Fore.GREEN+'[TIME NOW] ' + Style.RESET_ALL + str(file_encountered_time_stamp))
+                        print(Style.BRIGHT+Fore.GREEN+'[PATH] ' + Style.RESET_ALL + str(f))
+                    else:
+                        if learn is True:
+                            append_str_ = str(' ' + str(total_files_encountered) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [learned:' + str(learn_count) + ']' + Fore.RED + ' [exception:' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL)
+                        else:
+                            append_str_ = str(' ' + str(total_files_encountered) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [pass:' + str(buffer_passed_count) + ']' + Fore.RED + ' [fail:' + str(buffer_failed_count) + ']' + Style.RESET_ALL)
+                        try:
+                            pyprogress.progress_bar(part=int(total_files_encountered), whole=int(f_count),
+                                                    pre_append=str(Style.BRIGHT + Fore.GREEN + pre_append_mode + Style.RESET_ALL),
+                                                    append=append_str_,
+                                                    encapsulate_l='|',
+                                                    encapsulate_r='|',
+                                                    encapsulate_l_color=progress_bar_color,
+                                                    encapsulate_r_color=progress_bar_color,
+                                                    progress_char=' ',
+                                                    bg_color=progress_bar_color,
+                                                    factor=50,
+                                                    multiplier=multiplier)
+                        except Exception as e:
+                            print(e)
 
             print('\n')
             print('-'*limit_char)
