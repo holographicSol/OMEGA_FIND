@@ -1,11 +1,11 @@
 """ Written by Benjamin Jack Cullen aka Holographic_Sol
 
-OMEGA FIND
+OmegaFind
 
 Intention 1: To find/expose files that may be pretending to be a file type other than the files real file type.
 
     Example: secret_file.mp4 has been renamed to anything.anything and buried somewhere in a drive.
-        OMEGA FIND seeks to expose these files for what they really are.
+        OmegaFind seeks to expose these files for what they really are.
         (A double-edged blade. agent exposes you/you expose an agent)
 
 Intention 2: To find files not by name or filename suffix matching but by reading each file into memory and comparing
@@ -15,7 +15,7 @@ Intention 3: Define. Specify a filename suffix and return a concise/verbose desc
 
 Modes of operation:
 
-    Learn: Provide OMEGA FIND with a directory path of trusted file(s) to learn from to build OMEGA FINDS knowledge of
+    Learn: Provide OmegaFind with a directory path of trusted file(s) to learn from to build OmegaFind's knowledge of
     what file types should look like.
 
     Scan: Scan a directory and try to ascertain if file(s) are what they claim to be.
@@ -1025,15 +1025,12 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('    - Written by Benjamin Jack Cullen.')
     print('')
     print('Command line arguments:')
-    print('    -scan             Specifies a directory to scan. [ -scan directory_name ]')
-    print('    -learn            Instructs the program to train from a specified location. [ -learn directory_name ]')
-    print('    -define           Attempts to lookup a definition for suffix (not file/directory name) given. [ -define exe ]')
+    print('    -scan             Specifies a directory to scan.')
+    print('    -learn            Instructs the program to learn from a specified location. Only use trusted locations/files.')
+    print('    -define           Attempts to lookup a definition for suffix specified.')
     print('    -find             Specify path. Finds files predicated upon known buffer read associations created by learning.')
-    print('                      Example: -find C:/')
     print('                      A special and powerful search feature.')
     print('    --buffer-size     Specify in bytes how much of each file will be read into the buffer.')
-    print('                      Example: --buffer-size 1024')
-    print('                      Example: --buffer-size full')
     print('                      If using --buffer-size full, then a scan/learning/find operation could take a much longer time.')
     print('                      --buffer-size can be used in combination with -scan, -learn and -find.')
     print('    --first-pass      Used in conjunction with -find.')
@@ -1047,6 +1044,9 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('    Example: omega_find --first-pass --buffer-size 2048 -learn C:\\')
     print('    Example: omega_find --first-pass --buffer-size full -scan C:\\')
     print('    Example: omega_find -v -define jpg')
+    print('')
+    print('OmegaFind is only as good as its implementation. A working knowledge of filesystems is recommended in order to best')
+    print('implement OmegaFind.')
     print('-' * limit_char)
     print('')
 
