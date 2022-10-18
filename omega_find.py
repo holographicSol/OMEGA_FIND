@@ -252,11 +252,12 @@ def scan_learn(target_path, buffer_size=2048):
                 # todo record files that throw exception
                 try:
                     fullpath = os.path.join(dirName, fname)
-                    f_item.append(str(fullpath))
                     f_size = os.path.getsize(fullpath)
-                    if f_size > f_size_max:
-                        f_size_max = f_size
-                    f_count += 1
+                    if f_size:
+                        f_item.append(str(fullpath))
+                        if f_size > f_size_max:
+                            f_size_max = f_size
+                        f_count += 1
                 except:
                     pass
                 pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
@@ -645,11 +646,12 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
             # todo record files that throw exception
             try:
                 fullpath = os.path.join(dirName, fname)
-                f_item.append(str(fullpath))
                 f_size = os.path.getsize(fullpath)
-                if f_size > f_size_max:
-                    f_size_max = f_size
-                f_count += 1
+                if f_size:
+                    f_item.append(str(fullpath))
+                    if f_size > f_size_max:
+                        f_size_max = f_size
+                    f_count += 1
             except:
                 pass
             pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
