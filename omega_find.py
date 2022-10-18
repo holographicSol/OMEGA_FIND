@@ -36,6 +36,7 @@ import magic
 import codecs
 from colorama import Fore, Style
 import pyprogress
+import ext_module
 
 encode = u'\u5E73\u621015\u200e\U0001d6d1,'
 verbosity = False
@@ -550,8 +551,9 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     buffer_read_exception_count_1 = 0
 
     dt = str(datetime.datetime.now())
-    log_error_file = os.getcwd() + '/log/log_error_omega_find_[' + str(suffix) + ']_' + dt + '.txt'
-    log_result_file = os.getcwd() + '/data/log_result_omega_find_[' + str(suffix) + ']_' + dt.replace(':', '') + '.txt'
+    dt_str = dt.replace(':', '-')
+    log_error_file = os.getcwd() + '/log/log_error_omega_find_[results]_' + dt_str + '.txt'
+    log_result_file = os.getcwd() + '/data/log_result_omega_find_[results]_' + dt_str + '.txt'
 
     # header
     print('\n')
@@ -579,7 +581,8 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
         with codecs.open('./db/database_learning.txt', 'r', encoding='utf8') as fo:
             for line in fo:
                 line = line.strip()
-                if line.startswith(suffix):
+                if line.startswith(tuple(suffix)):
+                    # print(line)
                     known_buffer.append(line)
                     pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILETYPE BUFFER ASSOCIATIONS] ' + Style.RESET_ALL + str(len(known_buffer)))
                     pyprogress.pr_technical_data(pr_str)
@@ -655,47 +658,52 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
                     if verbosity is True:
                         print(fullpath, e)
                     exception_logger(log_file=log_error_file, error=e, fullpath=fullpath)
-                    break
 
-            """ Buffer output may yield digits for timestamps, dimensions etc. """
-            key_buff_read = str(suffix) + '-buffer-read ' + str(b)
-            x_re = re.sub(digi_str, '', key_buff_read)
+            if b:
 
-            """ Iterate Comparing regex x to regex y """
-            i = 0
-            for _ in known_buffer:
-                y_re = re.sub(digi_str, '', _)
-                if y_re == x_re:
-                    if verbosity is True:
-                        print(Style.BRIGHT + Fore.GREEN + '[REGEX BUFFER MATCH] [FILE] ' + Style.RESET_ALL + str(fullpath))
-                        print(Style.BRIGHT + Fore.GREEN + '[BUFFER] ' + Style.RESET_ALL + str(x_re))
-                    f_match.append(fullpath)
-                    f_all.append('[BUFFER MATCH] [' + fullpath + '] ' + str(x_re))
-                    logger_omega_find_result(log_file=log_result_file, fullpath=fullpath, buffer=x_re)
-                i += 1
+                """ Buffer output may yield digits for timestamps, dimensions etc. """
+                i_suffix = 0
+                for suffixs in suffix:
+                    key_buff_read = str(suffix[i_suffix]) + '-buffer-read ' + str(b)
+                    x_re = re.sub(digi_str, '', key_buff_read)
 
-            if verbosity is False:
-                try:
-                    pyprogress.progress_bar(part=int(f_i), whole=int(f_count),
-                                            pre_append=str(Style.BRIGHT + Fore.GREEN + '[SCANNING] ' + Style.RESET_ALL),
-                                            append=str(' ' + str(f_i) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [' + str(len(f_match)) + ']' + Fore.RED + ' [' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL),
-                                            encapsulate_l='|',
-                                            encapsulate_r='|',
-                                            encapsulate_l_color='RED',
-                                            encapsulate_r_color='RED',
-                                            progress_char=' ',
-                                            bg_color='RED',
-                                            factor=50,
-                                            multiplier=multiplier)
-                except Exception as e:
-                    print(e)
-            else:
-                print('-' * 120)
-                print(Style.BRIGHT + Fore.GREEN + '[PROGRESS] ' + Style.RESET_ALL + str(f_i) + ' / ' + str(f_count))
-                print(Style.BRIGHT + Fore.GREEN + '[BUFFER MATCHES] ' + Style.RESET_ALL + str(len(f_match)))
-                print(Style.BRIGHT + Fore.GREEN + '[PERMISSION ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_permssion_count_1))
-                print(Style.BRIGHT + Fore.GREEN + '[TOTAL ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_count_1))
-                print(Style.BRIGHT + Fore.GREEN + '[READING] ' + Style.RESET_ALL + str(fullpath))
+                    """ Iterate Comparing regex x to regex y """
+                    i = 0
+                    for _ in known_buffer:
+                        y_re = re.sub(digi_str, '', _)
+                        if y_re == x_re:
+                            if verbosity is True:
+                                print(Style.BRIGHT + Fore.GREEN + '[REGEX BUFFER MATCH] [FILE] ' + Style.RESET_ALL + str(fullpath))
+                                print(Style.BRIGHT + Fore.GREEN + '[BUFFER] ' + Style.RESET_ALL + str(x_re))
+                            f_match.append(fullpath)
+                            f_all.append('[BUFFER MATCH] [' + fullpath + '] ' + str(x_re))
+                            logger_omega_find_result(log_file=log_result_file, fullpath=fullpath, buffer=x_re)
+                        i += 1
+                    i_suffix += 1
+
+                if verbosity is False:
+                    try:
+                        pyprogress.progress_bar(part=int(f_i), whole=int(f_count),
+                                                pre_append=str(Style.BRIGHT + Fore.GREEN + '[SCANNING] ' + Style.RESET_ALL),
+                                                append=str(' ' + str(f_i) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [' + str(len(f_match)) + ']' + Fore.RED + ' [' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL),
+                                                encapsulate_l='|',
+                                                encapsulate_r='|',
+                                                encapsulate_l_color='RED',
+                                                encapsulate_r_color='RED',
+                                                progress_char=' ',
+                                                bg_color='RED',
+                                                factor=50,
+                                                multiplier=multiplier)
+                    except Exception as e:
+                        print(e)
+
+                else:
+                    print('-' * 120)
+                    print(Style.BRIGHT + Fore.GREEN + '[PROGRESS] ' + Style.RESET_ALL + str(f_i) + ' / ' + str(f_count))
+                    print(Style.BRIGHT + Fore.GREEN + '[BUFFER MATCHES] ' + Style.RESET_ALL + str(len(f_match)))
+                    print(Style.BRIGHT + Fore.GREEN + '[PERMISSION ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_permssion_count_1))
+                    print(Style.BRIGHT + Fore.GREEN + '[TOTAL ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_count_1))
+                    print(Style.BRIGHT + Fore.GREEN + '[READING] ' + Style.RESET_ALL + str(fullpath))
         else:
             f_count -= 1
     print('')
@@ -766,6 +774,7 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('                      --buffer-size can be used in combination with -scan, -learn and -find.')
     print('                      allowing progress to be displayed.')
     print('    -suffix           Specify suffix. Used in combination with -find.')
+    print('    --group-suffix    Specify a suffix group. Used in combination with -find.')
     print('    -v                Output verbose. Only recommended when using -define and for development purposes.')
     print('    -h                Displays this help message')
     print('')
@@ -818,19 +827,74 @@ elif '-learn' in sys.argv:
     else:
         print('-- invalid path')
 
-elif '-find' in sys.argv and '-suffix' in sys.argv:
+elif '-find' in sys.argv:
 
-        idx = sys.argv.index('-find')
-        target_path = sys.argv[idx+1]
+    idx = sys.argv.index('-find')
+    target_path = sys.argv[idx+1]
+    suffix = []
 
+    if '-suffix' in sys.argv:
         idx = sys.argv.index('-suffix')
-        suffix = sys.argv[idx+1]
+        suffix.append(sys.argv[idx+1].strip())
 
-        if os.path.exists(target_path):
+    elif '--group-suffix' in sys.argv:
+        idx = sys.argv.index('--group-suffix')
+        suffix_ = sys.argv[idx + 1]
+
+        if suffix_ == 'archive':
+            suffix = ext_module.ext_archive
+
+        elif suffix_ == 'audio':
+            suffix = ext_module.ext_audio
+
+        elif suffix_ == 'book':
+            suffix = ext_module.ext_book
+
+        elif suffix_ == 'code':
+            suffix = ext_module.ext_code
+
+        elif suffix_ == 'executable':
+            suffix = ext_module.ext_executable
+
+        elif suffix_ == 'font':
+            suffix = ext_module.ext_font
+
+        elif suffix_ == 'image':
+            suffix = ext_module.ext_image
+
+        elif suffix_ == 'sheet':
+            suffix = ext_module.ext_sheet
+
+        elif suffix_ == 'slide':
+            suffix = ext_module.ext_slide
+
+        elif suffix_ == 'text':
+            suffix = ext_module.ext_text
+
+        elif suffix_ == 'video':
+            suffix = ext_module.ext_video
+
+        elif suffix_ == 'web':
+            suffix = ext_module.ext_web
+
+    elif '--custom-group-suffix' in sys.argv:
+        cgs = []
+        idx = sys.argv.index('--custom-group-suffix')
+        suffix_ = sys.argv[idx + 1]
+        suffix_ = suffix_.split(',')
+        for _ in suffix_:
+            cgs.append(_.strip())
+        print(cgs)
+        suffix = cgs
+
+    if os.path.exists(target_path):
+        if suffix:
             cc()
             omega_find(target_path=target_path, suffix=suffix, buffer_size=buffer_size, verbosity=verbosity)
         else:
-            print('-- invalid path')
+            print('-- suffix unspecified.')
+    else:
+        print('-- invalid path.')
 
 
 Style.RESET_ALL
