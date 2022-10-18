@@ -45,7 +45,6 @@ rf = ()
 learn = False
 limit_char = 120
 total_errors = 0
-buffer_size = 2048
 multiplier = pyprogress.multiplier_from_inverse_factor(factor=50)
 
 
@@ -54,6 +53,11 @@ def cc():
     if os.name in ('nt', 'dos'):
         cmd = 'cls'
     os.system(cmd)
+
+
+def divide_chunks(_list=[], _max=int):
+    for i in range(0, len(_list), _max):
+        yield _list[i:i + _max]
 
 
 def run_function_0(v):
@@ -307,15 +311,33 @@ def scan_learn(target_path, buffer_size=2048):
                     buffer_permission_denied_attempt_2 = False
                     try:
                         """ Allocate buffer size and read the file. """
-                        b = str(magic.from_buffer(codecs.open(f, "rb").read(buffer_size))).lower().strip()
+
+                        if str(buffer_size) == 'full':
+
+                            sz = int(os.path.getsize(f))
+                            b = magic.from_buffer(codecs.open(f, "rb").read(int(sz)))
+                            b = str(b).lower().strip()
+
+                        elif str(buffer_size).isdigit():
+                            b = magic.from_buffer(codecs.open(f, "rb").read(buffer_size))
+                            b = str(b).lower().strip()
+
                     except Exception as e:
                         if 'permission denied' in str(e).lower():
                             buffer_read_exception_permssion_count_0 += 1
                             buffer_permission_denied_attempt_1 = True
                         buffer_read_exception_count_0 += 1
                         try:
-                            """ Allocate buffer size and read the file. """
-                            b = str(magic.from_buffer(open(f, "r").read(buffer_size))).lower().strip()
+
+                            if str(buffer_size) == 'full':
+                                sz = int(os.path.getsize(f))
+                                b = magic.from_buffer(open(f, "r").read(int(sz)))
+                                b = str(b).lower().strip()
+
+                            elif str(buffer_size).isdigit():
+                                b = magic.from_buffer(open(f, "r").read(buffer_size))
+                                b = str(b).lower().strip()
+
                         except Exception as e:
                             if 'permission denied' in str(e).lower():
                                 buffer_read_exception_permssion_count_1 += 1
@@ -563,17 +585,22 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     print('')
     print('-' * 120)
 
+    chunk_suffix = list(divide_chunks(_list=suffix, _max=12))
+
     # scan criteria
-    print('')
     print(str(' '*52) + Style.BRIGHT + Fore.GREEN + '[SCAN CRITERIA]' + Style.RESET_ALL)
     print(Style.BRIGHT + Fore.GREEN + '[LOCATION] ' + Style.RESET_ALL + str(target_path))
-    print(Style.BRIGHT + Fore.GREEN + '[FILE TYPE] ' + Style.RESET_ALL + str(suffix))
+    print(Style.BRIGHT + Fore.GREEN + '[FILE TYPE] ' + Style.RESET_ALL + str(chunk_suffix[0]))
+    i = 0
+    for _ in chunk_suffix:
+        if i != 0:
+            print('            ' + str(_))
+        i += 1
     print(Style.BRIGHT + Fore.GREEN + '[BUFFER SIZE] ' + Style.RESET_ALL + str(buffer_size))
     print('')
     print('-' * 120)
 
     # read database
-    print('')
     print(str(' ' * 51) + Style.BRIGHT + Fore.GREEN + '[READING DATABASE]' + Style.RESET_ALL)
     known_buffer = []
     if os.path.exists('./db/database_learning.txt'):
@@ -593,7 +620,6 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     print('-' * 120)
 
     # preliminarily scan target location
-    print('')
     print(str(' ' * 47) + Style.BRIGHT + Fore.GREEN + '[SCANNING TARGET LOCATION]' + Style.RESET_ALL)
     f_count = 0
     f_item = []
@@ -605,7 +631,6 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
             pyprogress.pr_technical_data(pr_str)
     print('')
     print('-' * 120)
-    print('')
     print(str(' ' * 40) + Style.BRIGHT + Fore.GREEN + '[PERFORMING PRIMARY OPERATION] OMEGA FIND' + Style.RESET_ALL)
     print('')
     print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND]  ' + Style.RESET_ALL + 'Attempting to read each file into memory and compare buffer to known buffers for suffix specified.')
@@ -627,10 +652,11 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
             key_buff_read = ''
             try:
                 """ Allocate buffer size and read the file. """
-                if buffer_size == 'full':
+                if str(buffer_size) == 'full':
                     sz = int(os.path.getsize(fullpath))
-                    b = str(magic.from_buffer(codecs.open(fullpath, "rb").read(sz))).lower().strip()
-                else:
+                    b = magic.from_buffer(codecs.open(fullpath, "rb").read(int(sz)))
+                    b = str(b).lower().strip()
+                elif str(buffer_size).isdigit():
                     b = str(magic.from_buffer(codecs.open(fullpath, "rb").read(buffer_size))).lower().strip()
 
             except Exception as e:
@@ -643,10 +669,11 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
                     print(fullpath, e)
                 try:
                     """ Allocate buffer size and read the file. """
-                    if buffer_size == 'full':
+                    if str(buffer_size) == 'full':
                         sz = int(os.path.getsize(fullpath))
-                        b = str(magic.from_buffer(open(fullpath, "r").read(sz))).lower().strip()
-                    else:
+                        b = magic.from_buffer(open(fullpath, "r").read(int(sz)))
+                        b = str(b).lower().strip()
+                    elif str(buffer_size).isdigit():
                         b = str(magic.from_buffer(open(fullpath, "r").read(buffer_size))).lower().strip()
 
                 except Exception as e:
@@ -709,7 +736,6 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     print('')
     print('')
     print('-' * 120)
-    print('')
     print(str(' ' * 56) + Style.BRIGHT + Fore.GREEN + '[MENU]')
     print('')
     str_idx = (120 - int(len('[DISPLAY RESULTS]   '))) - int(len(' [OPEN RESULTS FILE]     '))
@@ -720,7 +746,6 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     print('-' * 120)
     menu_input = input('[select] ')
     print('-' * 120)
-    print('')
     if menu_input == '1':
         if os.path.exists(log_result_file):
             print(str(' ' * 48) + Style.BRIGHT + Fore.GREEN + '[OPENING RESULTS FILE]' + Style.RESET_ALL)
@@ -812,7 +837,7 @@ if '--buffer-size' in sys.argv:
     if sys.argv[idx + 1].isdigit():
         buffer_size = int(sys.argv[idx + 1])
     elif sys.argv[idx + 1] == 'full':
-        buffer_size = sys.argv[idx + 1]
+        buffer_size = sys.argv[idx + 1].strip()
 
 if '-define' in sys.argv:
     idx = sys.argv.index('-define')
