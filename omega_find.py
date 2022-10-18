@@ -60,6 +60,13 @@ def divide_chunks(_list=[], _max=int):
         yield _list[i:i + _max]
 
 
+def convert_bytes(num):
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB']:
+        if num < 1024.0:
+            return ("%3.1f %s" % (num, x))
+        num /= 1024.0
+
+
 def run_function_0(v):
     global verbosity
     bne = True
@@ -239,12 +246,24 @@ def scan_learn(target_path, buffer_size=2048):
         # preliminarily scan target location
         f_count = 0
         f_item = []
+        f_size_max = 0
         for dirName, subdirList, fileList in os.walk(target_path):
             for fname in fileList:
-                f_item.append(str(os.path.join(dirName, fname)))
+                fullpath = os.path.join(dirName, fname)
+                f_item.append(str(fullpath))
+                f_size = os.path.getsize(fullpath)
+                if f_size > f_size_max:
+                    f_size_max = f_size
                 f_count += 1
                 pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
                 pyprogress.pr_technical_data(pr_str)
+        print('')
+        print(Style.BRIGHT + Fore.GREEN + '[LARGEST FILE FOUND] ' + Style.RESET_ALL + str(convert_bytes(int(f_size_max))))
+        print('')
+        print(Style.BRIGHT + Fore.RED + '[WARNING] ' + Style.RESET_ALL + 'Each file will be allocated space in memory according to buffer size.')
+        print('          If buffer size set to full, the whole file will be read into memory.')
+        print('          Please ensure there is sufficient RAM/DISK-OVERFLOW/other-solution in place before continuing!')
+        print('          The largest file found was ' + str(convert_bytes(int(f_size_max))) + '.')
         print('')
         print('-' * 120)
 
@@ -548,7 +567,8 @@ def scan_learn(target_path, buffer_size=2048):
                 print('')
                 print('1. Display all obfuscated or unrecognized files.')
                 print('')
-                usr_choice_1 = input('Enter: ')
+                print('-' * limit_char)
+                usr_choice_1 = input('select: ')
                 print('-' * limit_char)
                 if usr_choice_1 == '1':
                     str_ = '[DISPLAYING POTENTIALLY DE-OBFUSCATED FILES]'
@@ -556,8 +576,8 @@ def scan_learn(target_path, buffer_size=2048):
                     print('')
                     for _ in unrecognized_buffer:
                         print(Style.BRIGHT + Fore.GREEN + '[OBFUSCATED OR UNRECOGNIZED] ' + Style.RESET_ALL + str(_))
-                print('')
-                print('-'*limit_char)
+                    print('')
+                    print('-'*limit_char)
             str_ = '[COMPLETE]'
             print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
             print('-' * limit_char)
@@ -580,7 +600,6 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     # header
     print('\n')
     print('-' * 120)
-    print('')
     print(str(' '*54) + Style.BRIGHT + Fore.GREEN + '[OMEGA FIND]' + Style.RESET_ALL)
     print('')
     print('-' * 120)
@@ -597,11 +616,8 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
             print('            ' + str(_))
         i += 1
     print(Style.BRIGHT + Fore.GREEN + '[BUFFER SIZE] ' + Style.RESET_ALL + str(buffer_size))
-    print('')
-    print('-' * 120)
 
     # read database
-    print(str(' ' * 51) + Style.BRIGHT + Fore.GREEN + '[READING DATABASE]' + Style.RESET_ALL)
     known_buffer = []
     if os.path.exists('./db/database_learning.txt'):
         print(Style.BRIGHT + Fore.GREEN + '[DATABASE] ' + Style.RESET_ALL + 'Found')
@@ -609,171 +625,187 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
             for line in fo:
                 line = line.strip()
                 if line.startswith(tuple(suffix)):
-                    # print(line)
                     known_buffer.append(line)
                     pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILETYPE BUFFER ASSOCIATIONS] ' + Style.RESET_ALL + str(len(known_buffer)))
                     pyprogress.pr_technical_data(pr_str)
     else:
         print(Style.BRIGHT + Fore.RED + '[DATABASE] ' + Style.RESET_ALL + 'Could not find database.')
     print('')
-    print('')
-    print('-' * 120)
 
     # preliminarily scan target location
-    print(str(' ' * 47) + Style.BRIGHT + Fore.GREEN + '[SCANNING TARGET LOCATION]' + Style.RESET_ALL)
     f_count = 0
     f_item = []
+    f_size_max = 0
     for dirName, subdirList, fileList in os.walk(target_path):
         for fname in fileList:
-            f_item.append(str(os.path.join(dirName, fname)))
+            fullpath = os.path.join(dirName, fname)
+            f_item.append(str(fullpath))
+            f_size = os.path.getsize(fullpath)
+            if f_size > f_size_max:
+                f_size_max = f_size
             f_count += 1
             pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
             pyprogress.pr_technical_data(pr_str)
     print('')
+    print(Style.BRIGHT + Fore.GREEN + '[LARGEST FILE FOUND] ' + Style.RESET_ALL + str(convert_bytes(int(f_size_max))))
+    print('')
+    print(Style.BRIGHT + Fore.RED + '[WARNING] ' + Style.RESET_ALL + 'Each file will be allocated space in memory according to buffer size.')
+    print('          If buffer size set to full, the whole file will be read into memory.')
+    print('          Please ensure there is sufficient RAM/DISK-OVERFLOW/other-solution in place before continuing!')
+    print('          The largest file found was ' + str(convert_bytes(int(f_size_max))) + '.')
+    print('')
     print('-' * 120)
-    print(str(' ' * 40) + Style.BRIGHT + Fore.GREEN + '[PERFORMING PRIMARY OPERATION] OMEGA FIND' + Style.RESET_ALL)
-    print('')
-    print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND]  ' + Style.RESET_ALL + 'Attempting to read each file into memory and compare buffer to known buffers for suffix specified.')
-    print(Style.BRIGHT + Fore.GREEN + '[INFORMATION] ' + Style.RESET_ALL + 'Similar files may be included in results. This is normal and expected behaviour.')
-    print('')
-    f_i = 0
-    f_match = []
-    f_error = []
-    f_all = []
-    digi_str = r'[0-9]'
-    """ Iterate files """
-    for _ in f_item:
-        if os.path.exists(_):
-            f_i += 1
-            fullpath = _.strip()
 
-            """ Initiate And Clear Each Iteration """
-            b = ''
-            key_buff_read = ''
-            try:
-                """ Allocate buffer size and read the file. """
-                if str(buffer_size) == 'full':
-                    sz = int(os.path.getsize(fullpath))
-                    b = magic.from_buffer(codecs.open(fullpath, "rb").read(int(sz)))
-                    b = str(b).lower().strip()
-                elif str(buffer_size).isdigit():
-                    b = str(magic.from_buffer(codecs.open(fullpath, "rb").read(buffer_size))).lower().strip()
+    usr_choice = input('Press Y to perform advanced find operation or press any other key to abort [Enter] : ')
+    if usr_choice == 'y' or usr_choice == 'Y':
+        print('-' * 120)
+        print(str(' ' * 40) + Style.BRIGHT + Fore.GREEN + '[PERFORMING PRIMARY OPERATION] OMEGA FIND' + Style.RESET_ALL)
+        print('')
+        print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND]  ' + Style.RESET_ALL + 'Attempting to read each file into memory and compare buffer to known buffers for suffix specified.')
+        print(Style.BRIGHT + Fore.GREEN + '[INFORMATION] ' + Style.RESET_ALL + 'Similar files may be included in results. This is normal and expected behaviour.')
+        print('')
+        f_i = 0
+        f_match = []
+        f_error = []
+        f_all = []
+        digi_str = r'[0-9]'
+        """ Iterate files """
+        for _ in f_item:
+            if os.path.exists(_):
+                f_i += 1
+                fullpath = _.strip()
 
-            except Exception as e:
-                if 'permission denied' in str(e).lower():
-                    buffer_read_exception_permssion_count_0 += 1
-                buffer_read_exception_count_0 += 1
-                f_error.append('[ERROR 0] [' + fullpath + '] ' + str(e))
-                f_all.append('[ERROR 0] [' + fullpath + '] ' + str(e))
-                if verbosity is True:
-                    print(fullpath, e)
+                """ Initiate And Clear Each Iteration """
+                b = ''
+                key_buff_read = ''
                 try:
                     """ Allocate buffer size and read the file. """
                     if str(buffer_size) == 'full':
                         sz = int(os.path.getsize(fullpath))
-                        b = magic.from_buffer(open(fullpath, "r").read(int(sz)))
+                        b = magic.from_buffer(codecs.open(fullpath, "rb").read(int(sz)))
                         b = str(b).lower().strip()
                     elif str(buffer_size).isdigit():
-                        b = str(magic.from_buffer(open(fullpath, "r").read(buffer_size))).lower().strip()
+                        b = str(magic.from_buffer(codecs.open(fullpath, "rb").read(buffer_size))).lower().strip()
 
                 except Exception as e:
                     if 'permission denied' in str(e).lower():
-                        buffer_read_exception_permssion_count_1 += 1
-                    buffer_read_exception_count_1 += 1
-                    f_error.append('[ERROR 1] [' + fullpath + '] ' + str(e))
-                    f_all.append('[ERROR 1] [' + fullpath + '] ' + str(e))
+                        buffer_read_exception_permssion_count_0 += 1
+                    buffer_read_exception_count_0 += 1
+                    f_error.append('[ERROR 0] [' + fullpath + '] ' + str(e))
+                    f_all.append('[ERROR 0] [' + fullpath + '] ' + str(e))
                     if verbosity is True:
                         print(fullpath, e)
-                    exception_logger(log_file=log_error_file, error=e, fullpath=fullpath)
-
-            if b:
-
-                """ Buffer output may yield digits for timestamps, dimensions etc. """
-                i_suffix = 0
-                for suffixs in suffix:
-                    key_buff_read = str(suffix[i_suffix]) + '-buffer-read ' + str(b)
-                    x_re = re.sub(digi_str, '', key_buff_read)
-
-                    """ Iterate Comparing regex x to regex y """
-                    i = 0
-                    for _ in known_buffer:
-                        y_re = re.sub(digi_str, '', _)
-                        if y_re == x_re:
-                            if verbosity is True:
-                                print(Style.BRIGHT + Fore.GREEN + '[REGEX BUFFER MATCH] [FILE] ' + Style.RESET_ALL + str(fullpath))
-                                print(Style.BRIGHT + Fore.GREEN + '[BUFFER] ' + Style.RESET_ALL + str(x_re))
-                            f_match.append(fullpath)
-                            f_all.append('[BUFFER MATCH] [' + fullpath + '] ' + str(x_re))
-                            logger_omega_find_result(log_file=log_result_file, fullpath=fullpath, buffer=x_re)
-                        i += 1
-                    i_suffix += 1
-
-                if verbosity is False:
                     try:
-                        pyprogress.progress_bar(part=int(f_i), whole=int(f_count),
-                                                pre_append=str(Style.BRIGHT + Fore.GREEN + '[SCANNING] ' + Style.RESET_ALL),
-                                                append=str(' ' + str(f_i) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [' + str(len(f_match)) + ']' + Fore.RED + ' [' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL),
-                                                encapsulate_l='|',
-                                                encapsulate_r='|',
-                                                encapsulate_l_color='RED',
-                                                encapsulate_r_color='RED',
-                                                progress_char=' ',
-                                                bg_color='RED',
-                                                factor=50,
-                                                multiplier=multiplier)
-                    except Exception as e:
-                        print(e)
+                        """ Allocate buffer size and read the file. """
+                        if str(buffer_size) == 'full':
+                            sz = int(os.path.getsize(fullpath))
+                            b = magic.from_buffer(open(fullpath, "r").read(int(sz)))
+                            b = str(b).lower().strip()
+                        elif str(buffer_size).isdigit():
+                            b = str(magic.from_buffer(open(fullpath, "r").read(buffer_size))).lower().strip()
 
-                else:
-                    print('-' * 120)
-                    print(Style.BRIGHT + Fore.GREEN + '[PROGRESS] ' + Style.RESET_ALL + str(f_i) + ' / ' + str(f_count))
-                    print(Style.BRIGHT + Fore.GREEN + '[BUFFER MATCHES] ' + Style.RESET_ALL + str(len(f_match)))
-                    print(Style.BRIGHT + Fore.GREEN + '[PERMISSION ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_permssion_count_1))
-                    print(Style.BRIGHT + Fore.GREEN + '[TOTAL ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_count_1))
-                    print(Style.BRIGHT + Fore.GREEN + '[READING] ' + Style.RESET_ALL + str(fullpath))
-        else:
-            f_count -= 1
-    print('')
-    print('')
-    print('-' * 120)
-    print(str(' ' * 56) + Style.BRIGHT + Fore.GREEN + '[MENU]')
-    print('')
-    str_idx = (120 - int(len('[DISPLAY RESULTS]   '))) - int(len(' [OPEN RESULTS FILE]     '))
-    print(Style.BRIGHT + Fore.GREEN + ' [OPEN RESULTS FILE] ' + Style.RESET_ALL + '1' + str(' '*str_idx) + Style.BRIGHT + Fore.GREEN + '[DISPLAY RESULTS]   ' + Style.RESET_ALL + '3')
-    print(Style.BRIGHT + Fore.GREEN + ' [OPEN ERROR FILE]   ' + Style.RESET_ALL + '2' + str(' '*str_idx) + Style.BRIGHT + Fore.GREEN + '[DISPLAY ERRORS]    ' + Style.RESET_ALL + '4')
-    print(Style.BRIGHT + Fore.GREEN + str(' '*(str_idx+int(len(' [OPEN ERROR FILE]    ')))) + '[DISPLAY ALL]       ' + Style.RESET_ALL + '5')
-    print('')
-    print('-' * 120)
-    menu_input = input('[select] ')
-    print('-' * 120)
-    if menu_input == '1':
-        if os.path.exists(log_result_file):
-            print(str(' ' * 48) + Style.BRIGHT + Fore.GREEN + '[OPENING RESULTS FILE]' + Style.RESET_ALL)
-            os.startfile('"' + log_result_file + '"')
-        else:
-            print(str(' ' * 44) + Style.BRIGHT + Fore.GREEN + '[RESULTS FILE COULD NOT BE FOUND]' + Style.RESET_ALL)
-    elif menu_input == '2':
-        if os.path.exists(log_error_file):
-            print(str(' ' * 50) + Style.BRIGHT + Fore.GREEN + '[OPENING ERROR FILE]' + Style.RESET_ALL)
-            os.startfile('"' + log_error_file + '"')
-        else:
-            print(str(' ' * 47) + Style.BRIGHT + Fore.GREEN + '[ERROR FILE COULD NOT BE FOUND]' + Style.RESET_ALL)
-    elif menu_input == '3':
-        print(str(' ' * 46) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING BUFFER MATCHES]' + Style.RESET_ALL)
+                    except Exception as e:
+                        if 'permission denied' in str(e).lower():
+                            buffer_read_exception_permssion_count_1 += 1
+                        buffer_read_exception_count_1 += 1
+                        f_error.append('[ERROR 1] [' + fullpath + '] ' + str(e))
+                        f_all.append('[ERROR 1] [' + fullpath + '] ' + str(e))
+                        if verbosity is True:
+                            print(fullpath, e)
+                        exception_logger(log_file=log_error_file, error=e, fullpath=fullpath)
+
+                if b:
+
+                    """ Buffer output may yield digits for timestamps, dimensions etc. """
+                    i_suffix = 0
+                    for suffixs in suffix:
+                        key_buff_read = str(suffix[i_suffix]) + '-buffer-read ' + str(b)
+                        x_re = re.sub(digi_str, '', key_buff_read)
+
+                        """ Iterate Comparing regex x to regex y """
+                        i = 0
+                        for _ in known_buffer:
+                            y_re = re.sub(digi_str, '', _)
+                            if y_re == x_re:
+                                if verbosity is True:
+                                    print(Style.BRIGHT + Fore.GREEN + '[REGEX BUFFER MATCH] [FILE] ' + Style.RESET_ALL + str(fullpath))
+                                    print(Style.BRIGHT + Fore.GREEN + '[BUFFER] ' + Style.RESET_ALL + str(x_re))
+                                f_match.append(fullpath)
+                                f_all.append('[BUFFER MATCH] [' + fullpath + '] ' + str(x_re))
+                                logger_omega_find_result(log_file=log_result_file, fullpath=fullpath, buffer=x_re)
+                                break
+                            i += 1
+                        i_suffix += 1
+
+                    if verbosity is False:
+                        try:
+                            pyprogress.progress_bar(part=int(f_i), whole=int(f_count),
+                                                    pre_append=str(Style.BRIGHT + Fore.GREEN + '[SCANNING] ' + Style.RESET_ALL),
+                                                    append=str(' ' + str(f_i) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [' + str(len(f_match)) + ']' + Fore.RED + ' [' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL),
+                                                    encapsulate_l='|',
+                                                    encapsulate_r='|',
+                                                    encapsulate_l_color='RED',
+                                                    encapsulate_r_color='RED',
+                                                    progress_char=' ',
+                                                    bg_color='RED',
+                                                    factor=50,
+                                                    multiplier=multiplier)
+                        except Exception as e:
+                            print(e)
+
+                    else:
+                        print('-' * 120)
+                        print(Style.BRIGHT + Fore.GREEN + '[PROGRESS] ' + Style.RESET_ALL + str(f_i) + ' / ' + str(f_count))
+                        print(Style.BRIGHT + Fore.GREEN + '[BUFFER MATCHES] ' + Style.RESET_ALL + str(len(f_match)))
+                        print(Style.BRIGHT + Fore.GREEN + '[PERMISSION ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_permssion_count_1))
+                        print(Style.BRIGHT + Fore.GREEN + '[TOTAL ERRORS] ' + Style.RESET_ALL + str(buffer_read_exception_count_1))
+                        print(Style.BRIGHT + Fore.GREEN + '[READING] ' + Style.RESET_ALL + str(fullpath))
+            else:
+                f_count -= 1
         print('')
-        for _ in f_match:
-            print(Style.BRIGHT + Fore.GREEN + '[BUFFER MATCH] ' + Style.RESET_ALL + str(_))
-    elif menu_input == '4':
-        print(str(' ' * 50) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING ERRORS]' + Style.RESET_ALL)
         print('')
-        for _ in f_error:
-            print(Style.BRIGHT + Fore.GREEN + '[ERROR] ' + Style.RESET_ALL + str(_))
-    elif menu_input == '5':
-        print(str(' ' * 52) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING ALL]' + Style.RESET_ALL)
+        print('-' * 120)
+        print(str(' ' * 56) + Style.BRIGHT + Fore.GREEN + '[MENU]')
         print('')
-        for _ in f_all:
-            print(Style.BRIGHT + Fore.GREEN + '[OUTPUT] ' + Style.RESET_ALL + str(_))
-    print('')
+        str_idx = (120 - int(len('[DISPLAY RESULTS]   '))) - int(len(' [OPEN RESULTS FILE]     '))
+        print(Style.BRIGHT + Fore.GREEN + ' [OPEN RESULTS FILE] ' + Style.RESET_ALL + '1' + str(' '*str_idx) + Style.BRIGHT + Fore.GREEN + '[DISPLAY RESULTS]   ' + Style.RESET_ALL + '3')
+        print(Style.BRIGHT + Fore.GREEN + ' [OPEN ERROR FILE]   ' + Style.RESET_ALL + '2' + str(' '*str_idx) + Style.BRIGHT + Fore.GREEN + '[DISPLAY ERRORS]    ' + Style.RESET_ALL + '4')
+        print(Style.BRIGHT + Fore.GREEN + str(' '*(str_idx+int(len(' [OPEN ERROR FILE]    ')))) + '[DISPLAY ALL]       ' + Style.RESET_ALL + '5')
+        print('')
+        print('-' * 120)
+        menu_input = input('[select] ')
+        print('-' * 120)
+        if menu_input == '1':
+            if os.path.exists(log_result_file):
+                print(str(' ' * 48) + Style.BRIGHT + Fore.GREEN + '[OPENING RESULTS FILE]' + Style.RESET_ALL)
+                os.startfile('"' + log_result_file + '"')
+            else:
+                print(str(' ' * 44) + Style.BRIGHT + Fore.GREEN + '[RESULTS FILE COULD NOT BE FOUND]' + Style.RESET_ALL)
+        elif menu_input == '2':
+            if os.path.exists(log_error_file):
+                print(str(' ' * 50) + Style.BRIGHT + Fore.GREEN + '[OPENING ERROR FILE]' + Style.RESET_ALL)
+                os.startfile('"' + log_error_file + '"')
+            else:
+                print(str(' ' * 47) + Style.BRIGHT + Fore.GREEN + '[ERROR FILE COULD NOT BE FOUND]' + Style.RESET_ALL)
+        elif menu_input == '3':
+            print(str(' ' * 46) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING BUFFER MATCHES]' + Style.RESET_ALL)
+            print('')
+            for _ in f_match:
+                print(Style.BRIGHT + Fore.GREEN + '[BUFFER MATCH] ' + Style.RESET_ALL + str(_))
+        elif menu_input == '4':
+            print(str(' ' * 50) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING ERRORS]' + Style.RESET_ALL)
+            print('')
+            for _ in f_error:
+                print(Style.BRIGHT + Fore.GREEN + '[ERROR] ' + Style.RESET_ALL + str(_))
+        elif menu_input == '5':
+            print(str(' ' * 52) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING ALL]' + Style.RESET_ALL)
+            print('')
+            for _ in f_all:
+                print(Style.BRIGHT + Fore.GREEN + '[OUTPUT] ' + Style.RESET_ALL + str(_))
+    else:
+        print('-' * 120)
+        str_ = '[ABORTING]'
+        print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
     print('-' * 120)
     print('')
 
