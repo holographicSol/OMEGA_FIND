@@ -249,12 +249,16 @@ def scan_learn(target_path, buffer_size=2048):
         f_size_max = 0
         for dirName, subdirList, fileList in os.walk(target_path):
             for fname in fileList:
-                fullpath = os.path.join(dirName, fname)
-                f_item.append(str(fullpath))
-                f_size = os.path.getsize(fullpath)
-                if f_size > f_size_max:
-                    f_size_max = f_size
-                f_count += 1
+                # todo record files that throw exception
+                try:
+                    fullpath = os.path.join(dirName, fname)
+                    f_item.append(str(fullpath))
+                    f_size = os.path.getsize(fullpath)
+                    if f_size > f_size_max:
+                        f_size_max = f_size
+                    f_count += 1
+                except:
+                    pass
                 pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
                 pyprogress.pr_technical_data(pr_str)
         print('')
@@ -638,12 +642,16 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     f_size_max = 0
     for dirName, subdirList, fileList in os.walk(target_path):
         for fname in fileList:
-            fullpath = os.path.join(dirName, fname)
-            f_item.append(str(fullpath))
-            f_size = os.path.getsize(fullpath)
-            if f_size > f_size_max:
-                f_size_max = f_size
-            f_count += 1
+            # todo record files that throw exception
+            try:
+                fullpath = os.path.join(dirName, fname)
+                f_item.append(str(fullpath))
+                f_size = os.path.getsize(fullpath)
+                if f_size > f_size_max:
+                    f_size_max = f_size
+                f_count += 1
+            except:
+                pass
             pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
             pyprogress.pr_technical_data(pr_str)
     print('')
