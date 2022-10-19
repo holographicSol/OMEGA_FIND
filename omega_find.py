@@ -48,6 +48,7 @@ total_errors = 0
 multiplier = pyprogress.multiplier_from_inverse_factor(factor=20)
 multiplier_2 = pyprogress.multiplier_from_inverse_factor(factor=10)
 
+
 def cc():
     cmd = 'clear'
     if os.name in ('nt', 'dos'):
@@ -144,7 +145,7 @@ def logger_omega_find_result(log_file='', fullpath='', buffer=''):
     fo.close()
 
 
-def scan_learn(target_path, buffer_size=2048):
+def scan_learn(target_path, buffer_size=2048, filesize_max=int):
     global ei
     global learn
     global verbosity
@@ -157,14 +158,14 @@ def scan_learn(target_path, buffer_size=2048):
     time_now = time_now.replace(':', '-')
     time_now = time_now.replace('.', '')
     tm_stamp = time_now.replace(' ', '_')
-    dir_now = './data/' + tm_stamp + '/'
+    dir_now = '/data/' + tm_stamp + '/'
     if not os.path.exists(dir_now):
-        os.mkdir(dir_now)
-    log_report = dir_now + '/log_report.txt'
+        os.mkdir(str('./' + dir_now))
+    log_report = os.path.join(os.getcwd(), 'log_report.txt')
 
     """ Check Directory Exists """
     bool_created_tm_stamp_dir = False
-    if os.path.exists(dir_now):
+    if os.path.exists(str('./' + dir_now)):
         if verbosity is True:
             print(str('-- successfully created new directory: ') + str(dir_now))
         bool_created_tm_stamp_dir = True
@@ -173,11 +174,11 @@ def scan_learn(target_path, buffer_size=2048):
             print(str('-- failed to create new timestamped directory: ') + str(dir_now))
 
     if bool_created_tm_stamp_dir is True:
-        ef = dir_now + 'log_exception.txt'
-        log_file_failed_inspection = dir_now + 'log_file_unrecognized.txt'
-        log_file_passed_inspection = dir_now + 'log_file_recognized.txt'
-        log_file_permission_denied = dir_now + 'log_file_permission_denied.txt'
-        log_file_empty_buffer_read = dir_now + 'log_file_buffer_string_empty.txt'
+        ef = os.path.join(os.getcwd(), 'log_exception.txt')
+        log_file_failed_inspection = os.getcwd() + dir_now + 'log_file_unrecognized.txt'
+        log_file_passed_inspection = os.getcwd() + dir_now + 'log_file_recognized.txt'
+        log_file_permission_denied = os.getcwd() + dir_now + 'log_file_permission_denied.txt'
+        log_file_empty_buffer_read = os.getcwd() + dir_now + 'log_file_empty_buffer_read.txt'
         if verbosity is True:
             print(str('-- creating new file name value: ') + str(log_file_failed_inspection))
             print(str('-- creating new file name value: ') + str(ef))
@@ -186,25 +187,25 @@ def scan_learn(target_path, buffer_size=2048):
 
         # Header
         if learn is True:
-            str_ = '[OMEGA FIND] LEARNING MODE'
+            str_ = Style.BRIGHT + Fore.CYAN + '[OMEGA FIND] LEARNING MODE' + Style.RESET_ALL
             print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
             print('-' * limit_char)
-            str_ = '[LEARNING CRITERIA]'
-            print(str(' ' * int(
-                int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+            str_ = Style.BRIGHT + Fore.CYAN + ' [LEARNING CRITERIA]' + Style.RESET_ALL
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.CYAN + str_ + Style.RESET_ALL)
         elif learn is False:
-            str_ = '[OMEGA FIND] DE-OBFUSCATION MODE'
-            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+            str_ = Style.BRIGHT + Fore.RED + '[OMEGA FIND] DE-OBFUSCATION MODE' + Style.RESET_ALL
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
             print('-' * limit_char)
-            str_ = '[SCAN CRITERIA]'
-            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+            str_ = Style.BRIGHT + Fore.RED + ' [DE-OBFUSCATION CRITERIA]' + Style.RESET_ALL
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
         print('')
-        print(Style.BRIGHT + Fore.GREEN + '[SPECIFIED LOCATION] ' + Style.RESET_ALL + str(target_path))
-        print(Style.BRIGHT + Fore.GREEN + '[BUFFER SIZE] ' + Style.RESET_ALL + str(buffer_size))
+
         if learn is True:
-            print(Style.BRIGHT + Fore.GREEN + '[LEARNING] ' + Style.RESET_ALL + str(learn))
+            print(Style.BRIGHT + Fore.GREEN + '[LEARNING] ' + Fore.CYAN + str(learn) + Style.RESET_ALL)
         else:
-            print(Style.BRIGHT + Fore.GREEN + '[LEARNING] ' + Style.RESET_ALL + str(learn))
+            print(Style.BRIGHT + Fore.GREEN + '[LEARNING] ' + Fore.RED + str(learn) + Style.RESET_ALL)
+        print(Style.BRIGHT + Fore.GREEN + '[BUFFER SIZE] ' + Style.RESET_ALL + str(buffer_size))
+        print(Style.BRIGHT + Fore.GREEN + '[SPECIFIED LOCATION] ' + Style.RESET_ALL + str(target_path))
 
         """ Read Database (Learned Buffer Read Results Mapped To Filename Suffixes) """
         learn_database = './db/database_learning.txt'
@@ -242,33 +243,60 @@ def scan_learn(target_path, buffer_size=2048):
                             print('-- learning database anomaly:', line)
             fo.close()
         print('')
+        print('')
 
         # preliminarily scan target location
         f_count = 0
         f_item = []
         f_total_size = 0
         f_size_max = 0
+        skip_f_size_max = 0
         skip_file = 0
         for dirName, subdirList, fileList in os.walk(target_path):
             for fname in fileList:
                 try:
                     fullpath = os.path.join(dirName, fname)
                     f_size = os.path.getsize(fullpath)
-                    if f_size:
-                        f_item.append([str(fullpath), str(f_size)])
-                        f_total_size = int(f_total_size + f_size)
-                        if f_size > f_size_max:
-                            f_size_max = f_size
-                        f_count += 1
+
+                    # check for f_size
+                    if str(f_size).isdigit():
+
+                        # limit file size max in bytes
+                        if str(filesize_max).isdigit():
+                            if int(f_size) <= int(filesize_max):
+                                f_item.append([str(fullpath), str(f_size)])
+                                f_total_size = int(f_total_size + f_size)
+                                if int(f_size) > int(f_size_max):
+                                    f_size_max = int(f_size)
+                                f_count += 1
+                            else:
+                                if int(f_size) > int(skip_f_size_max):
+                                    skip_f_size_max = int(f_size)
+
+                        # file size max unlimited
+                        else:
+                            f_item.append([str(fullpath), str(f_size)])
+                            f_total_size = int(f_total_size + f_size)
+                            if int(f_size) > int(f_size_max):
+                                f_size_max = int(f_size)
+                            f_count += 1
+
                 except Exception as e:
                     skip_file += 1
                     exception_logger(log_file=ef, error=e, fullpath=fullpath)
-                pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count) + Style.BRIGHT + Fore.RED + ' [skipping:' + Style.RESET_ALL + str(skip_file) + Fore.RED + ']' + Style.RESET_ALL)
+                pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count) + Style.BRIGHT + Fore.RED + ' [skipping:' + str(skip_file) + ']' + Style.RESET_ALL)
                 pyprogress.pr_technical_data(pr_str)
         print('')
         human_f_total_size = str(convert_bytes(int(f_total_size))).replace(' ', '')
         print(Style.BRIGHT + Fore.GREEN + '[TOTAL SIZE] ' + Style.RESET_ALL + human_f_total_size)
-        print(Style.BRIGHT + Fore.GREEN + '[LARGEST FILE SIZE] ' + Style.RESET_ALL + str(convert_bytes(int(f_size_max))))
+        if str(filesize_max).isdigit():
+            print(Style.BRIGHT + Fore.GREEN + '[FILESIZE MAX LIMIT] ' + Style.RESET_ALL + str(
+                convert_bytes(int(filesize_max))))
+        else:
+            print(Style.BRIGHT + Fore.GREEN + '[FILESIZE MAX LIMIT] ' + Style.RESET_ALL + str(filesize_max))
+        print(Style.BRIGHT + Fore.GREEN + '[LARGEST FILE SIZE] ' + Style.RESET_ALL + str(
+            convert_bytes(int(f_size_max))) + Style.BRIGHT + Fore.RED + ' [largest-skipped-file:' + str(
+            convert_bytes(int(skip_f_size_max))) + ']')
         print('')
         print(Style.BRIGHT + Fore.RED + '[WARNING] ' + Style.RESET_ALL + 'Each file will be allocated space in memory according to buffer size.')
         print('          If buffer size set to full, the whole file will be read into memory.')
@@ -300,20 +328,26 @@ def scan_learn(target_path, buffer_size=2048):
 
         if learn is True:
             usr_choice = input('Press Y to learn or press any other key to abort [Enter] : ')
-            print('-' * limit_char)
-            str_ = '[OMEGA FIND] LEARNING'
-            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
         elif learn is False:
             usr_choice = input('Press Y to attempt de-obfuscation or press any other key to abort [Enter] : ')
-            print('-' * limit_char)
-            str_ = '[OMEGA FIND] DE-OBFUSCATING'
-            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
-            progress_bar_color = 'RED'
-            pre_append_mode = str(Style.BRIGHT + Fore.RED + str('[DE-OBFUSCATING] ') + Style.RESET_ALL)
-        print('')
 
         """ Continue If Compiled Database Lists Are Aligned """
+        bool_abort = False
         if usr_choice.lower() == 'y':
+            if learn is True:
+                print('-' * limit_char)
+                str_ = Style.BRIGHT + Fore.CYAN + '[OMEGA FIND] LEARNING' + Style.RESET_ALL
+                print(str(' ' * int(
+                    int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+            elif learn is False:
+                print('-' * limit_char)
+                str_ = Style.BRIGHT + Fore.RED + '[OMEGA FIND] DE-OBFUSCATING' + Style.RESET_ALL
+                print(str(' ' * int(
+                    int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+                progress_bar_color = 'RED'
+                pre_append_mode = str(Style.BRIGHT + Fore.RED + str('[DE-OBFUSCATING] ') + Style.RESET_ALL)
+
+            print('')
 
             digi_str = r'[0-9]'
             count_f_size = 0
@@ -558,11 +592,13 @@ def scan_learn(target_path, buffer_size=2048):
                 fo_report.write('[BUFFER PERMISSION EXCEPTIONS ATTEMPT 2] ' + str(buffer_read_exception_permssion_count_1) + '\n')
             fo_report.close()
             if learn is True:
-                str_ = '[LEARNING RESULTS]'
-                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+                str_ = Style.BRIGHT + Fore.CYAN + '[LEARNING RESULTS]' + Style.RESET_ALL
+                print(str(' ' * int(
+                    int(limit_char / 2) - int(len(str_) / 2))) + str_)
             elif learn is False:
-                str_ = '[SCAN RESULTS]'
-                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+                str_ = Style.BRIGHT + Fore.RED + '[SCAN RESULTS]' + Style.RESET_ALL
+                print(str(' ' * int(
+                    int(limit_char / 2) - int(len(str_) / 2))) + str_)
             print('')
             print(Style.BRIGHT + Fore.GREEN + '[INITIATION TIME] ' + Style.RESET_ALL + str(time_now))
             print(Style.BRIGHT + Fore.GREEN + '[COMPLETION TIME] ' + Style.RESET_ALL + str(datetime.datetime.now()))
@@ -589,30 +625,58 @@ def scan_learn(target_path, buffer_size=2048):
             print(Style.BRIGHT + Fore.GREEN + '[LOG FILES] ' + Style.RESET_ALL + str(dir_now))
             print('')
             print('-'*limit_char)
-            if learn is False:
-                str_ = '[POST SCAN OPTIONS]'
-                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
-                print('')
-                print('1. Display all obfuscated or unrecognized files.')
-                print('')
-                print('-' * limit_char)
-                usr_choice_1 = input('select: ')
-                print('-' * limit_char)
-                if usr_choice_1 == '1':
-                    str_ = '[DISPLAYING POTENTIALLY DE-OBFUSCATED FILES]'
-                    print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
-                    print('')
-                    for _ in unrecognized_buffer:
-                        print(Style.BRIGHT + Fore.GREEN + '[OBFUSCATED OR UNRECOGNIZED] ' + Style.RESET_ALL + str(_))
-                    print('')
-                    print('-'*limit_char)
-            str_ = '[COMPLETE]'
-            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
-            print('-' * limit_char)
             print('')
+            str_ = Style.BRIGHT + Fore.CYAN + '[MENU]' + Style.RESET_ALL
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+            print('')
+            print(Style.BRIGHT + Fore.GREEN + '[1] [OPEN RESULTS FILE]' + Style.RESET_ALL)
+            print(Style.BRIGHT + Fore.GREEN + '[2] [OPEN ERROR FILE]' + Style.RESET_ALL)
+            print('')
+            print('-' * 120)
+            menu_input = input('[select] ')
+            print('-' * 120)
+
+            if learn is False:
+                if menu_input == '1':
+                    if os.path.exists(log_file_failed_inspection):
+
+                        str_ = Style.BRIGHT + Fore.GREEN + '[OPENING RESULTS FILE]' + Style.RESET_ALL
+                        print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+                        print('-' * 120)
+                        os.startfile('"' + log_file_failed_inspection + '"')
+
+                    else:
+                        str_ = Style.BRIGHT + Fore.CYAN + '[RESULTS FILE COULD NOT BE FOUND]' + Style.RESET_ALL
+                        print('-' * 120)
+                        print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+
+                elif menu_input == '2':
+                    if os.path.exists(ef):
+                        str_ = Style.BRIGHT + Fore.CYAN + '[OPENING ERROR FILE]' + Style.RESET_ALL
+                        print('-' * 120)
+                        print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+                        os.startfile('"' + ef + '"')
+                    else:
+                        str_ = Style.BRIGHT + Fore.CYAN + '[ERROR FILE COULD NOT BE FOUND]' + Style.RESET_ALL
+                        print('-' * 120)
+                        print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+
+        else:
+            bool_abort = True
+            if learn is True:
+                str_ = Style.BRIGHT + Fore.CYAN + '[ABORTING]' + Style.RESET_ALL
+            elif learn is False:
+                str_ = Style.BRIGHT + Fore.RED + '[ABORTING]' + Style.RESET_ALL
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+
+        if bool_abort is False:
+            str_ = Style.BRIGHT + Fore.GREEN + '[COMPLETE]' + Style.RESET_ALL
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+        print('-' * 120)
+        print('')
 
 
-def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
+def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False, filesize_max=False):
     """ uses database to perform a special search """
 
     buffer_read_exception_permssion_count_0 = 0
@@ -628,22 +692,22 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     # header
     print('\n')
     print('-' * 120)
-    print(str(' '*54) + Style.BRIGHT + Fore.GREEN + '[OMEGA FIND]' + Style.RESET_ALL)
-    print('')
+    str_ = Style.BRIGHT + Fore.RED + '[OMEGA FIND] SCAN MODE' + Style.RESET_ALL
+    print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
     print('-' * 120)
 
     chunk_suffix = list(divide_chunks(_list=suffix, _max=12))
 
     # scan criteria
-    print(str(' '*52) + Style.BRIGHT + Fore.GREEN + '[SCAN CRITERIA]' + Style.RESET_ALL)
-    print(Style.BRIGHT + Fore.GREEN + '[LOCATION] ' + Style.RESET_ALL + str(target_path))
-    print(Style.BRIGHT + Fore.GREEN + '[FILE TYPE] ' + Style.RESET_ALL + str(chunk_suffix[0]))
-    i = 0
-    for _ in chunk_suffix:
-        if i != 0:
-            print('            ' + str(_))
-        i += 1
+    str_ = Style.BRIGHT + Fore.RED + '[SCAN CRITERIA]' + Style.RESET_ALL
+    print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+    if learn is True:
+        print(Style.BRIGHT + Fore.GREEN + '[LEARNING] ' + Fore.CYAN + str(buffer_size) + Style.RESET_ALL)
+    else:
+        print(Style.BRIGHT + Fore.GREEN + '[LEARNING] ' + Fore.RED + str(buffer_size) + Style.RESET_ALL)
+
     print(Style.BRIGHT + Fore.GREEN + '[BUFFER SIZE] ' + Style.RESET_ALL + str(buffer_size))
+    print(Style.BRIGHT + Fore.GREEN + '[SPECIFIED LOCATION] ' + Style.RESET_ALL + str(target_path))
 
     # read database
     known_buffer = []
@@ -654,38 +718,71 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
                 line = line.strip()
                 if line.startswith(tuple(suffix)):
                     known_buffer.append(line)
-                    pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILETYPE BUFFER ASSOCIATIONS] ' + Style.RESET_ALL + str(len(known_buffer)))
+                    pr_str = str(Style.BRIGHT + Fore.GREEN + '[LEARNED DEFINITIONS (for specified suffix(s))] ' + Style.RESET_ALL + str(len(known_buffer)))
                     pyprogress.pr_technical_data(pr_str)
     else:
         print(Style.BRIGHT + Fore.RED + '[DATABASE] ' + Style.RESET_ALL + 'Could not find database.')
-    print('')
+    print('\n')
+    print(Style.BRIGHT + Fore.GREEN + '[FILE TYPE] ' + Style.RESET_ALL + str(chunk_suffix[0]))
+    i = 0
+    for _ in chunk_suffix:
+        if i != 0:
+            print('            ' + str(_))
+        i += 1
+    print('\n')
 
     # preliminarily scan target location
     f_count = 0
     f_item = []
     f_total_size = 0
     f_size_max = 0
+    skip_f_size_max = 0
     skip_file = 0
     for dirName, subdirList, fileList in os.walk(target_path):
         for fname in fileList:
             try:
                 fullpath = os.path.join(dirName, fname)
                 f_size = os.path.getsize(fullpath)
-                if f_size:
-                    f_item.append([str(fullpath), str(f_size)])
-                    f_total_size = int(f_total_size + f_size)
-                    if f_size > f_size_max:
-                        f_size_max = f_size
-                    f_count += 1
+
+                # check for f_size
+                if str(f_size).isdigit():
+
+                    # limit file size max in bytes
+                    if str(filesize_max).isdigit():
+                        if int(f_size) <= int(filesize_max):
+                            f_item.append([str(fullpath), str(f_size)])
+                            f_total_size = int(f_total_size + f_size)
+                            if int(f_size) > int(f_size_max):
+                                f_size_max = int(f_size)
+                            f_count += 1
+                        else:
+                            if int(f_size) > int(skip_f_size_max):
+                                skip_f_size_max = int(f_size)
+
+                    # file size max unlimited
+                    else:
+                        f_item.append([str(fullpath), str(f_size)])
+                        f_total_size = int(f_total_size + f_size)
+                        if int(f_size) > int(f_size_max):
+                            f_size_max = int(f_size)
+                        f_count += 1
+
             except Exception as e:
                 skip_file += 1
                 exception_logger(log_file=log_error_file, error=e, fullpath=fullpath)
-            pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count) + Style.BRIGHT + Fore.RED + ' [skipping:' + Style.RESET_ALL + str(skip_file) + Fore.RED + ']' + Style.RESET_ALL)
+            pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count) + Style.BRIGHT + Fore.RED + ' [skipping:' + str(skip_file) + ']' + Style.RESET_ALL)
             pyprogress.pr_technical_data(pr_str)
     print('')
-    human_f_total_size = str(convert_bytes(int(f_total_size)))
+    human_f_total_size = str(convert_bytes(int(f_total_size))).replace(' ', '')
     print(Style.BRIGHT + Fore.GREEN + '[TOTAL SIZE] ' + Style.RESET_ALL + human_f_total_size)
-    print(Style.BRIGHT + Fore.GREEN + '[LARGEST FILE SIZE] ' + Style.RESET_ALL + str(convert_bytes(int(f_size_max))))
+    if str(filesize_max).isdigit():
+        print(Style.BRIGHT + Fore.GREEN + '[FILESIZE MAX LIMIT] ' + Style.RESET_ALL + str(
+            convert_bytes(int(filesize_max))))
+    else:
+        print(Style.BRIGHT + Fore.GREEN + '[FILESIZE MAX LIMIT] ' + Style.RESET_ALL + str(filesize_max))
+    print(Style.BRIGHT + Fore.GREEN + '[LARGEST FILE SIZE] ' + Style.RESET_ALL + str(
+        convert_bytes(int(f_size_max))) + Style.BRIGHT + Fore.RED + ' [largest-skipped-file:' + str(
+        convert_bytes(int(skip_f_size_max))) + ']')
     print('')
     print(Style.BRIGHT + Fore.RED + '[WARNING] ' + Style.RESET_ALL + 'Each file will be allocated space in memory according to buffer size.')
     print('          If buffer size set to full, the whole file will be read into memory.')
@@ -695,9 +792,11 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     print('-' * 120)
 
     usr_choice = input('Press Y to perform advanced find operation or press any other key to abort [Enter] : ')
+    bool_abort = False
     if usr_choice == 'y' or usr_choice == 'Y':
         print('-' * 120)
-        print(str(' ' * 40) + Style.BRIGHT + Fore.GREEN + '[PERFORMING PRIMARY OPERATION] OMEGA FIND' + Style.RESET_ALL)
+        str_ = Style.BRIGHT + Fore.RED + '[PERFORMING PRIMARY OPERATION] OMEGA SCAN' + Style.RESET_ALL
+        print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + str_)
         print('')
         print(Style.BRIGHT + Fore.GREEN + '[OMEGA FIND]  ' + Style.RESET_ALL + 'Attempting to read each file into memory and compare buffer to known buffers for suffix specified.')
         print(Style.BRIGHT + Fore.GREEN + '[INFORMATION] ' + Style.RESET_ALL + 'Similar files may be included in results. This is normal and expected behaviour.')
@@ -821,7 +920,8 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
         print('')
         print('')
         print('-' * 120)
-        print(str(' ' * 56) + Style.BRIGHT + Fore.GREEN + '[MENU]')
+        str_ = Style.BRIGHT + Fore.GREEN + '[MENU]' + Style.RESET_ALL
+        print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
         print('')
         str_idx = (120 - int(len('[DISPLAY RESULTS]   '))) - int(len(' [OPEN RESULTS FILE]     '))
         print(Style.BRIGHT + Fore.GREEN + ' [OPEN RESULTS FILE] ' + Style.RESET_ALL + '1' + str(' '*str_idx) + Style.BRIGHT + Fore.GREEN + '[DISPLAY RESULTS]   ' + Style.RESET_ALL + '3')
@@ -833,35 +933,56 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
         print('-' * 120)
         if menu_input == '1':
             if os.path.exists(log_result_file):
-                print(str(' ' * 48) + Style.BRIGHT + Fore.GREEN + '[OPENING RESULTS FILE]' + Style.RESET_ALL)
+                str_ = Style.BRIGHT + Fore.GREEN + '[OPENING RESULTS FILE]' + Style.RESET_ALL
+                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+                print('-' * 120)
                 os.startfile('"' + log_result_file + '"')
             else:
-                print(str(' ' * 44) + Style.BRIGHT + Fore.GREEN + '[RESULTS FILE COULD NOT BE FOUND]' + Style.RESET_ALL)
+                str_ = Style.BRIGHT + Fore.GREEN + '[RESULTS FILE COULD NOT BE FOUND]' + Style.RESET_ALL
+                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+                print('-' * 120)
         elif menu_input == '2':
             if os.path.exists(log_error_file):
-                print(str(' ' * 50) + Style.BRIGHT + Fore.GREEN + '[OPENING ERROR FILE]' + Style.RESET_ALL)
+                str_ = Style.BRIGHT + Fore.GREEN + '[OPENING ERROR FILE]' + Style.RESET_ALL
+                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+                print('-' * 120)
                 os.startfile('"' + log_error_file + '"')
             else:
-                print(str(' ' * 47) + Style.BRIGHT + Fore.GREEN + '[ERROR FILE COULD NOT BE FOUND]' + Style.RESET_ALL)
+                str_ = Style.BRIGHT + Fore.GREEN + '[ERROR FILE COULD NOT BE FOUND]' + Style.RESET_ALL
+                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+                print('-' * 120)
         elif menu_input == '3':
-            print(str(' ' * 46) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING BUFFER MATCHES]' + Style.RESET_ALL)
+            str_ = Style.BRIGHT + Fore.GREEN + '[DISPLAYING BUFFER MATCHES]' + Style.RESET_ALL
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
             print('')
             for _ in f_match:
-                print(Style.BRIGHT + Fore.GREEN + '[BUFFER MATCH] ' + Style.RESET_ALL + str(_))
+                str_ = Style.BRIGHT + Fore.GREEN + '[BUFFER MATCH]' + Style.RESET_ALL
+                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
         elif menu_input == '4':
-            print(str(' ' * 50) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING ERRORS]' + Style.RESET_ALL)
+            str_ = Style.BRIGHT + Fore.GREEN + '[DISPLAYING ERRORS]' + Style.RESET_ALL
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
             print('')
             for _ in f_error:
-                print(Style.BRIGHT + Fore.GREEN + '[ERROR] ' + Style.RESET_ALL + str(_))
+                str_ = Style.BRIGHT + Fore.GREEN + '[ERROR]' + Style.RESET_ALL
+                print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
         elif menu_input == '5':
-            print(str(' ' * 52) + Style.BRIGHT + Fore.GREEN + '[DISPLAYING ALL]' + Style.RESET_ALL)
+            str_ = Style.BRIGHT + Fore.GREEN + '[DISPLAYING ALL]' + Style.RESET_ALL
+            print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
             print('')
             for _ in f_all:
                 print(Style.BRIGHT + Fore.GREEN + '[OUTPUT] ' + Style.RESET_ALL + str(_))
     else:
-        print('-' * 120)
-        str_ = '[ABORTING]'
-        print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
+        bool_abort = True
+        if learn is True:
+            str_ = Style.BRIGHT + Fore.CYAN + '[ABORTING]' + Style.RESET_ALL
+
+        elif learn is False:
+            str_ = Style.BRIGHT + Fore.RED + '[ABORTING]' + Style.RESET_ALL
+        print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
+
+    if bool_abort is False:
+        str_ = Style.BRIGHT + Fore.GREEN + '[COMPLETE]' + Style.RESET_ALL
+        print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
     print('-' * 120)
     print('')
 
@@ -917,6 +1038,14 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('')
 
 
+def sysargv_filesizemax(filesize_max=False):
+    if '--filesize-max' in sys.argv:
+        idx = sys.argv.index('--filesize-max')
+        if sys.argv[idx + 1].isdigit():
+            filesize_max = int(sys.argv[idx + 1])
+    return filesize_max
+
+
 if '-v' in sys.argv:
     verbosity = True
 
@@ -926,6 +1055,7 @@ if '--buffer-size' in sys.argv:
         buffer_size = int(sys.argv[idx + 1])
     elif sys.argv[idx + 1] == 'full':
         buffer_size = sys.argv[idx + 1].strip()
+
 
 if '-define' in sys.argv:
     idx = sys.argv.index('-define')
@@ -939,7 +1069,8 @@ elif '-scan' in sys.argv:
 
     if os.path.exists(target_path) and os.path.isdir(target_path) is True:
         cc()
-        scan_learn(target_path=target_path, buffer_size=buffer_size)
+        filesize_max = False
+        scan_learn(target_path=target_path, buffer_size=buffer_size, filesize_max=sysargv_filesizemax(filesize_max))
     else:
         print('-- invalid path')
 
@@ -951,7 +1082,8 @@ elif '-learn' in sys.argv:
 
     if os.path.exists(target_path) and os.path.isdir(target_path) is True:
         cc()
-        scan_learn(target_path=target_path, buffer_size=buffer_size)
+        filesize_max = False
+        scan_learn(target_path=target_path, buffer_size=buffer_size, filesize_max=sysargv_filesizemax(filesize_max))
     else:
         print('-- invalid path')
 
@@ -1018,7 +1150,8 @@ elif '-find' in sys.argv:
     if os.path.exists(target_path):
         if suffix:
             cc()
-            omega_find(target_path=target_path, suffix=suffix, buffer_size=buffer_size, verbosity=verbosity)
+            filesize_max = False
+            omega_find(target_path=target_path, suffix=suffix, buffer_size=buffer_size, verbosity=verbosity, filesize_max=sysargv_filesizemax(filesize_max))
         else:
             print('-- suffix unspecified.')
     else:
