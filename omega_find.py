@@ -2,13 +2,13 @@
 
 OmegaFind
 
-Intention 1: To find/expose files that may be pretending to be a file type other than the files real file type.
+Intention 1: To de-obfuscate/expose files that may be pretending to be a file type other than the files real file type.
 
     Example: secret_file.mp4 has been renamed to anything.anything and buried somewhere in a drive.
         OmegaFind seeks to expose these files for what they really are.
         (A double-edged blade. agent exposes you/you expose an agent)
 
-Intention 2: To find files not by name or filename suffix matching but by reading each file into memory and comparing
+Intention 2: To scan files not by name or filename suffix matching but by reading each file into memory and comparing
     the buffer to known buffer reads for the suffix specified.
 
 Intention 3: Define. Specify a filename suffix and return a concise/verbose description of the file type specified.
@@ -18,7 +18,7 @@ Modes of operation:
     Learn: Provide OmegaFind with a directory path of trusted file(s) to learn from to build OmegaFind's knowledge of
     what file types should look like.
 
-    Scan: Scan a directory and try to ascertain if file(s) are what they claim to be.
+    De-Obfuscate: de-obfuscate a directory and try to ascertain if file(s) are what they claim to be.
 
     Find: A special search feature. Searches for file types not by suffix or MIME types but by reading the file into
     memory and comparing the read to known buffer reads compiled using -learn.
@@ -626,7 +626,7 @@ def scan_learn(target_path, buffer_size=2048, filesize_max=int):
             print('')
             print('-'*limit_char)
             print('')
-            str_ = Style.BRIGHT + Fore.CYAN + '[MENU]' + Style.RESET_ALL
+            str_ = Style.BRIGHT + Fore.GREEN + '[MENU]' + Style.RESET_ALL
             print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + str_)
             print('')
             print(Style.BRIGHT + Fore.GREEN + '[1] [OPEN RESULTS FILE]' + Style.RESET_ALL)
@@ -721,7 +721,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False, fil
                     pr_str = str(Style.BRIGHT + Fore.GREEN + '[LEARNED DEFINITIONS (for specified suffix(s))] ' + Style.RESET_ALL + str(len(known_buffer)))
                     pyprogress.pr_technical_data(pr_str)
     else:
-        print(Style.BRIGHT + Fore.RED + '[DATABASE] ' + Style.RESET_ALL + 'Could not find database.')
+        print(Style.BRIGHT + Fore.RED + '[DATABASE] ' + Style.RESET_ALL + 'Could not scan database.')
     print('\n')
     print(Style.BRIGHT + Fore.GREEN + '[FILE TYPE] ' + Style.RESET_ALL + str(chunk_suffix[0]))
     i = 0
@@ -791,7 +791,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False, fil
     print('')
     print('-' * 120)
 
-    usr_choice = input('Press Y to perform advanced find operation or press any other key to abort [Enter] : ')
+    usr_choice = input('Press Y to perform advanced scan operation or press any other key to abort [Enter] : ')
     bool_abort = False
     if usr_choice == 'y' or usr_choice == 'Y':
         print('-' * 120)
@@ -993,22 +993,22 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('')
     print('OMEGA FIND')
     print('    - Exposes file(s) that may be pretending to be a file type other than the files real file type.')
-    print('    - Powerful find feature.')
+    print('    - Powerful scan feature.')
     print('    - Extensively define filename suffixes.')
     print('    - Written by Benjamin Jack Cullen.')
     print('')
     print('Command line arguments:')
-    print('    -scan                    Specifies a directory to scan.')
+    print('    --de-obfuscate           Specifies a directory to attempt file de-obfuscation.')
     print('    -learn                   Instructs the program to learn from a specified location. Only use trusted locations/files.')
     print('    -define                  Attempts to lookup a definition for suffix specified.')
-    print('    -find                    Specify path. Finds files predicated upon known buffer read associations created by learning.')
+    print('    -scan                    Specify path. Finds files predicated upon known buffer read associations created by learning.')
     print('                             A special and powerful search feature.')
     print('    --buffer-size            Specify in bytes how much of each file will be read into the buffer.')
-    print('                             If using --buffer-size full, then a scan/learning/find operation could take a much longer time.')
-    print('                             --buffer-size can be used in combination with -scan, -learn and -find.')
+    print('                             If using --buffer-size full, then a scan/learning/de-obfuscation operation could take a much longer time.')
+    print('                             --buffer-size can be used in combination with -scan, -learn and --de-obfuscate.')
     print('                             allowing progress to be displayed.')
-    print('    -suffix                  Specify suffix. Used in combination with -find.')
-    print('    --group-suffix           Specify a suffix group. Used in combination with -find.')
+    print('    -suffix                  Specify suffix. Used in combination with -scan.')
+    print('    --group-suffix           Specify a suffix group. Used in combination with -scan.')
     print('                             --group-suffix archive')
     print('                             --group-suffix audio')
     print('                             --group-suffix book')
@@ -1021,15 +1021,15 @@ if len(sys.argv) == 2 and sys.argv[1] == '-h':
     print('                             --group-suffix text')
     print('                             --group-suffix video')
     print('                             --group-suffix web')
-    print('    --custom-group-suffix    Specify a custom suffix group. Used in combination with -find.')
+    print('    --custom-group-suffix    Specify a custom suffix group. Used in combination with -scan.')
     print('                             --custom-group-suffix mp3,mp4,jpg')
     print('                             Specify as many suffixes as required.')
     print('    -v                       Output verbose. Only recommended when using -define and for development purposes.')
     print('    -h                       Displays this help message')
     print('')
-    print('    Example: omega_find --buffer-size 2048 -find C:\ -suffix mp4')
+    print('    Example: omega_find --buffer-size 2048 -scan C:\ -suffix mp4')
     print('    Example: omega_find --buffer-size 2048 -learn C:\\')
-    print('    Example: omega_find --buffer-size full -scan C:\\')
+    print('    Example: omega_find --buffer-size full -de-obfuscate C:\\')
     print('    Example: omega_find -v -define jpg')
     print('')
     print('OmegaFind is only as good as its implementation. A working knowledge of filesystems is recommended in order to best')
@@ -1063,8 +1063,8 @@ if '-define' in sys.argv:
 
     run_function_0(suffix)
 
-elif '-scan' in sys.argv:
-    idx = sys.argv.index('-scan')
+elif '--de-obfuscate' in sys.argv:
+    idx = sys.argv.index('--de-obfuscate')
     target_path = sys.argv[idx+1]
 
     if os.path.exists(target_path) and os.path.isdir(target_path) is True:
@@ -1087,9 +1087,9 @@ elif '-learn' in sys.argv:
     else:
         print('-- invalid path')
 
-elif '-find' in sys.argv:
+elif '-scan' in sys.argv:
 
-    idx = sys.argv.index('-find')
+    idx = sys.argv.index('-scan')
     target_path = sys.argv[idx+1]
     suffix = []
 

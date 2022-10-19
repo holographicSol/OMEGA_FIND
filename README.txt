@@ -18,18 +18,18 @@ Modes of operation:
     Learn: Provide OMEGA FIND with a directory path of trusted file(s) to learn from to build OMEGA FINDS knowledge of
     what file types should look like.
 
-    Scan: Scan a directory and try to ascertain if file(s) are what they claim to be.
+    De-Obfuscate: Scan a directory and try to ascertain if file(s) are what they claim to be.
 
-    Find: A special search feature. Searches for file types not by suffix or MIME types but by reading the file into
+    Scan: A special search feature. Searches for file types not by suffix or MIME types but by reading the file into
     memory and comparing the read to known buffer reads compiled using -learn.
 
     Define: Return concise/verbose information about a filetype specified.
 
 Command line arguments:
 
--scan             Specifies a directory to scan.
+--de-obfuscate    Specifies a directory to scan.
 -learn            Instructs the program to learn from a specified location. Only use trusted locations/files.
--find             Specify path. Finds files predicated upon known buffer read associations created by learning.
+-scan             Specify path. Finds files predicated upon known buffer read associations created by learning.
                   A special and powerful search feature.
 -define           Attempts to lookup a definition for suffix specified.'
 
@@ -40,9 +40,9 @@ Command line arguments:
 -v                Output verbose. Only recommended when using -define and for development purposes.
 -h                Displays this help message
 
-Example: omega_find --buffer-size 2048 -find C:\ -suffix mp4
+Example: omega_find --buffer-size 2048 -scan C:\ -suffix mp4
 Example: omega_find --buffer-size 2048 -learn C:\
-Example: omega_find --buffer-size full -scan C:\
+Example: omega_find --buffer-size full --de-obfuscate C:\
 Example: omega_find -v -define jpg
 
 OmegaFind is only as good as its implementation. A working knowledge of filesystems is recommended in order to best
