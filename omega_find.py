@@ -45,8 +45,8 @@ rf = ()
 learn = False
 limit_char = 120
 total_errors = 0
-multiplier = pyprogress.multiplier_from_inverse_factor(factor=50)
-
+multiplier = pyprogress.multiplier_from_inverse_factor(factor=20)
+multiplier_2 = pyprogress.multiplier_from_inverse_factor(factor=10)
 
 def cc():
     cmd = 'clear'
@@ -246,24 +246,29 @@ def scan_learn(target_path, buffer_size=2048):
         # preliminarily scan target location
         f_count = 0
         f_item = []
+        f_total_size = 0
         f_size_max = 0
+        skip_file = 0
         for dirName, subdirList, fileList in os.walk(target_path):
             for fname in fileList:
-                # todo record files that throw exception
                 try:
                     fullpath = os.path.join(dirName, fname)
                     f_size = os.path.getsize(fullpath)
                     if f_size:
-                        f_item.append(str(fullpath))
+                        f_item.append([str(fullpath), str(f_size)])
+                        f_total_size = int(f_total_size + f_size)
                         if f_size > f_size_max:
                             f_size_max = f_size
                         f_count += 1
-                except:
-                    pass
-                pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
+                except Exception as e:
+                    skip_file += 1
+                    exception_logger(log_file=ef, error=e, fullpath=fullpath)
+                pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count) + Style.BRIGHT + Fore.RED + ' [skipping:' + Style.RESET_ALL + str(skip_file) + Fore.RED + ']' + Style.RESET_ALL)
                 pyprogress.pr_technical_data(pr_str)
         print('')
-        print(Style.BRIGHT + Fore.GREEN + '[LARGEST FILE FOUND] ' + Style.RESET_ALL + str(convert_bytes(int(f_size_max))))
+        human_f_total_size = str(convert_bytes(int(f_total_size))).replace(' ', '')
+        print(Style.BRIGHT + Fore.GREEN + '[TOTAL SIZE] ' + Style.RESET_ALL + human_f_total_size)
+        print(Style.BRIGHT + Fore.GREEN + '[LARGEST FILE SIZE] ' + Style.RESET_ALL + str(convert_bytes(int(f_size_max))))
         print('')
         print(Style.BRIGHT + Fore.RED + '[WARNING] ' + Style.RESET_ALL + 'Each file will be allocated space in memory according to buffer size.')
         print('          If buffer size set to full, the whole file will be read into memory.')
@@ -286,7 +291,7 @@ def scan_learn(target_path, buffer_size=2048):
         new_learned = []
         unrecognized_buffer = []
         progress_bar_color = 'CYAN'
-        pre_append_mode = ' [LEARNING] '
+        pre_append_mode = str(Style.BRIGHT + Fore.CYAN + str('[LEARNING] ') + Style.RESET_ALL)
 
         learn_count = 0
         buffer_failed_count = 0
@@ -304,19 +309,21 @@ def scan_learn(target_path, buffer_size=2048):
             str_ = '[OMEGA FIND] DE-OBFUSCATING'
             print(str(' ' * int(int(limit_char / 2) - int(len(str_) / 2))) + Style.BRIGHT + Fore.GREEN + str_ + Style.RESET_ALL)
             progress_bar_color = 'RED'
-            pre_append_mode = ' [DE-OBFUSCATING] '
+            pre_append_mode = str(Style.BRIGHT + Fore.RED + str('[DE-OBFUSCATING] ') + Style.RESET_ALL)
         print('')
 
         """ Continue If Compiled Database Lists Are Aligned """
         if usr_choice.lower() == 'y':
 
             digi_str = r'[0-9]'
+            count_f_size = 0
 
             """ Iterate files """
             for _ in f_item:
-                if os.path.exists(_):
+                if os.path.exists(_[0]):
                     total_files_encountered += 1
-                    f = _.strip()
+                    f = _[0].strip()
+                    count_f_size = int(int(count_f_size) + int(_[1]))
 
                     """ Get File Name Suffix """
                     fe = pathlib.Path(f).suffix
@@ -367,8 +374,8 @@ def scan_learn(target_path, buffer_size=2048):
                                 buffer_read_exception_permssion_count_1 += 1
                                 buffer_permission_denied_attempt_2 = True
                             buffer_read_exception_count_1 += 1
-                            e = '[error reading buffer (second try)] ' + str(e)
-                            exception_logger(log_file=ef, error=e, fullpath=f)
+                            e_str = '[error reading buffer (second try)] ' + str(e)
+                            exception_logger(log_file=ef, error=e_str, fullpath=f)
 
                     if verbosity is True:
                         print(Style.BRIGHT + Fore.GREEN + '[BUFFER READ] ' + Style.RESET_ALL + str(b))
@@ -487,25 +494,41 @@ def scan_learn(target_path, buffer_size=2048):
                         print(Style.BRIGHT+Fore.GREEN+'[PATH] ' + Style.RESET_ALL + str(f))
                     else:
                         if learn is True:
-                            append_str_ = str(' ' + str(total_files_encountered) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [learned:' + str(learn_count) + ']' + Fore.RED + ' [exception:' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL)
+                            append_str_ = str(' [' + str(total_files_encountered) + '/' + str(f_count) + '] ' + Style.BRIGHT + Fore.GREEN + '[' + str(learn_count) + ']' + Fore.RED + ' [' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL)
                         else:
-                            append_str_ = str(' ' + str(total_files_encountered) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [pass:' + str(buffer_passed_inspection_count) + ']' + Fore.RED + ' [fail:' + str(buffer_failed_count) + ']' + Style.RESET_ALL)
+                            append_str_ = str(' [' + str(total_files_encountered) + '/' + str(f_count) + '] ' + Style.BRIGHT + Fore.GREEN + '[' + str(buffer_passed_inspection_count) + ']' + Fore.RED + ' [' + str(buffer_failed_count) + ']' + Style.RESET_ALL)
                         try:
-                            pyprogress.progress_bar(part=int(total_files_encountered), whole=int(f_count),
-                                                    pre_append=str(Style.BRIGHT + Fore.GREEN + pre_append_mode + Style.RESET_ALL),
-                                                    append=append_str_,
+                            human_count_f_size = str(convert_bytes(int(count_f_size))).strip()
+                            pyprogress.progress_bar(n_progress_bar=2,
+                                                    n_progress_space_char='  ',
+                                                    part=int(total_files_encountered), whole=int(f_count),
+                                                    pre_append=str(pre_append_mode),
+                                                    append=str(append_str_),
                                                     encapsulate_l='|',
                                                     encapsulate_r='|',
                                                     encapsulate_l_color=progress_bar_color,
                                                     encapsulate_r_color=progress_bar_color,
                                                     progress_char=' ',
                                                     bg_color=progress_bar_color,
-                                                    factor=50,
-                                                    multiplier=multiplier)
+                                                    factor=20,
+                                                    multiplier=multiplier,
+                                                    part_2=int(count_f_size), whole_2=int(f_total_size),
+                                                    pre_append_2=str('[BYTES] '),
+                                                    append_2=str(' ' + human_count_f_size),
+                                                    encapsulate_l_2='|',
+                                                    encapsulate_r_2='|',
+                                                    encapsulate_l_color_2='GREEN',
+                                                    encapsulate_r_color_2='GREEN',
+                                                    progress_char_2=' ',
+                                                    bg_color_2='GREEN',
+                                                    factor_2=10,
+                                                    multiplier_2=multiplier_2
+                                                    )
                         except Exception as e:
                             print(e)
                 else:
                     f_count -= 1
+                    f_total_size -= int(_[1])
 
             print('\n')
             print('-'*limit_char)
@@ -640,24 +663,29 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
     # preliminarily scan target location
     f_count = 0
     f_item = []
+    f_total_size = 0
     f_size_max = 0
+    skip_file = 0
     for dirName, subdirList, fileList in os.walk(target_path):
         for fname in fileList:
-            # todo record files that throw exception
             try:
                 fullpath = os.path.join(dirName, fname)
                 f_size = os.path.getsize(fullpath)
                 if f_size:
-                    f_item.append(str(fullpath))
+                    f_item.append([str(fullpath), str(f_size)])
+                    f_total_size = int(f_total_size + f_size)
                     if f_size > f_size_max:
                         f_size_max = f_size
                     f_count += 1
-            except:
-                pass
-            pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count))
+            except Exception as e:
+                skip_file += 1
+                exception_logger(log_file=log_error_file, error=e, fullpath=fullpath)
+            pr_str = str(Style.BRIGHT + Fore.GREEN + '[FILES] ' + Style.RESET_ALL + str(f_count) + Style.BRIGHT + Fore.RED + ' [skipping:' + Style.RESET_ALL + str(skip_file) + Fore.RED + ']' + Style.RESET_ALL)
             pyprogress.pr_technical_data(pr_str)
     print('')
-    print(Style.BRIGHT + Fore.GREEN + '[LARGEST FILE FOUND] ' + Style.RESET_ALL + str(convert_bytes(int(f_size_max))))
+    human_f_total_size = str(convert_bytes(int(f_total_size)))
+    print(Style.BRIGHT + Fore.GREEN + '[TOTAL SIZE] ' + Style.RESET_ALL + human_f_total_size)
+    print(Style.BRIGHT + Fore.GREEN + '[LARGEST FILE SIZE] ' + Style.RESET_ALL + str(convert_bytes(int(f_size_max))))
     print('')
     print(Style.BRIGHT + Fore.RED + '[WARNING] ' + Style.RESET_ALL + 'Each file will be allocated space in memory according to buffer size.')
     print('          If buffer size set to full, the whole file will be read into memory.')
@@ -679,11 +707,14 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
         f_error = []
         f_all = []
         digi_str = r'[0-9]'
+        count_f_size = 0
+
         """ Iterate files """
         for _ in f_item:
-            if os.path.exists(_):
+            if os.path.exists(_[0]):
                 f_i += 1
-                fullpath = _.strip()
+                fullpath = _[0].strip()
+                count_f_size = int(int(count_f_size) + int(_[1]))
 
                 """ Initiate And Clear Each Iteration """
                 b = ''
@@ -749,8 +780,10 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
 
                     if verbosity is False:
                         try:
-                            pyprogress.progress_bar(part=int(f_i), whole=int(f_count),
-                                                    pre_append=str(Style.BRIGHT + Fore.GREEN + '[SCANNING] ' + Style.RESET_ALL),
+                            pyprogress.progress_bar(n_progress_bar=2,
+                                                    n_progress_space_char='  ',
+                                                    part=int(f_i), whole=int(f_count),
+                                                    pre_append=str(Style.BRIGHT + Fore.RED + '[SCANNING] ' + Style.RESET_ALL),
                                                     append=str(' ' + str(f_i) + '/' + str(f_count) + Style.BRIGHT + Fore.GREEN + '  [' + str(len(f_match)) + ']' + Fore.RED + ' [' + str(buffer_read_exception_count_1) + ']' + Style.RESET_ALL),
                                                     encapsulate_l='|',
                                                     encapsulate_r='|',
@@ -758,8 +791,20 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
                                                     encapsulate_r_color='RED',
                                                     progress_char=' ',
                                                     bg_color='RED',
-                                                    factor=50,
-                                                    multiplier=multiplier)
+                                                    factor=20,
+                                                    multiplier=multiplier,
+                                                    part_2=int(count_f_size), whole_2=int(f_total_size),
+                                                    pre_append_2=str('[BYTES] '),
+                                                    append_2=str(' [' + str(convert_bytes(int(count_f_size))).replace(' ','') + '/' + str(human_f_total_size).replace(' ', '') + ']'),
+                                                    encapsulate_l_2='|',
+                                                    encapsulate_r_2='|',
+                                                    encapsulate_l_color_2='GREEN',
+                                                    encapsulate_r_color_2='GREEN',
+                                                    progress_char_2=' ',
+                                                    bg_color_2='GREEN',
+                                                    factor_2=10,
+                                                    multiplier_2=multiplier_2
+                                                    )
                         except Exception as e:
                             print(e)
 
@@ -772,6 +817,7 @@ def omega_find(target_path='', suffix='', buffer_size=2048, verbosity=False):
                         print(Style.BRIGHT + Fore.GREEN + '[READING] ' + Style.RESET_ALL + str(fullpath))
             else:
                 f_count -= 1
+                f_total_size -= int(_[1])
         print('')
         print('')
         print('-' * 120)
